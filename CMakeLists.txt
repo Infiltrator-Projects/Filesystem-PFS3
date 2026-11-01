@@ -26,3 +26,6 @@ if(BUILD_TESTING)
  add_test(NAME pfs3-module-interface COMMAND pfs3-module-test)
 endif()
 install(TARGETS pfs3-driver LIBRARY DESTINATION /System/Filesystems)
+# Install only this filesystem's illustrated PDF beside its native shared object.
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/docs/PFS3.pdf"
+        DESTINATION /System/Resources/Documentation/Filesystem-PFS3)
