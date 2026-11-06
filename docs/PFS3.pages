@@ -157,3 +157,55 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://wiki.amigaos.net/w
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our independent .so, optional .ko, build procedures and test evidence describe a separate) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
+BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (PFS3 / engineering detail) Tj ET
+BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
+BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 09) Tj ET
+BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (DISK READ PATH / ENGINEERING NOTES) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Identify both the partition's RDB DOS type and the boot-block PFS signature; these) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (serve different purposes and may not contain the same identifier bytes.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Read the reserved metadata area near the beginning of the PFS volume, rather than) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (searching for an OFS-style midpoint root block.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Reconstruct the root and reserved-space bitmap before following anode index blocks.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (Their pointer fields describe ownership of filesystem metadata.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. An anode describes a contiguous data extent and may link to another anode. A file's) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (block map is reconstructed from the anode chain, not a FAT entry per cluster.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Parse directory blocks and their variable-length name records using the exact disk) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (format revision. Directory entries refer to anode identities for file contents.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Different PFS generations and device addressing methods have different on-disk) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (constraints; interpret versions, physical sector size and reserved block size before) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 430 Tm (decoding pointers.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (7. Confirm the extent's start, length and successor are valid against volume boundaries) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 387 Tm (and that file length is coherent with the extent chain.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Separate persistent filesystem state from stale blocks left by past updates. The) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (current root and metadata graph determine which extents are live.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
+BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (PFS3 / engineering detail) Tj ET
+BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
+BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 10) Tj ET
+BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (VALIDATION, RECOVERY AND COMPATIBILITY) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Before a write, check reserved bitmap, anode allocation, directory block ownership and) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (user-data extents as one consistent graph.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. An anode chain with a loop, an out-of-range block address or a duplicate live extent) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (must not be trusted for writable mounting.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Protect the distinction between filesystem metadata blocks and user data. Treating an) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (anode index as file content can destroy both.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. Preserve the original boot and root state when investigating interrupted operations;) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (stale previous metadata may hold recoverable evidence.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Do not confuse PFS3 partition DOS types with file content signatures or with the) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (earlier PFS floppy layout.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. An implementation claiming TD64 or DirectSCSI support must demonstrate correct) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (addressing beyond legacy device boundaries; a successful small-image test is) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 430 Tm (insufficient.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (7. Use the exact pfs3aio source revision for low-level field sizes and byte offsets. This) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 387 Tm (appendix is interpretive and not a substitute for the source structures.) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Recovery should report conflicting anode and bitmap evidence rather than silently) Tj ET
+BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (manufacturing a new file topology.) Tj ET
