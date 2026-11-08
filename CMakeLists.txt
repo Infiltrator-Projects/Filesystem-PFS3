@@ -14,8 +14,9 @@ FetchContent_MakeAvailable(infiltratr_common)
 # by this standalone filesystem package.
 set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
+# Build the same canonical host-neutral format policy as the pfs3.ko bridge.
 add_library(pfs3-driver SHARED native/pfs3_native.c native/pfs3_worker.c module/pfs3_module.c compat/legacy_services.c
- fixtures/pfs3_codec.c compat/fixture_bridge.c)
+ native/filesystems/pfs3/core/pfs3_core.c fixtures/pfs3_codec.c compat/fixture_bridge.c)
 set_source_files_properties(native/pfs3_worker.c PROPERTIES COMPILE_DEFINITIONS "main=ifs_pfs3_worker_main")
 set_target_properties(pfs3-driver PROPERTIES PREFIX "" OUTPUT_NAME "PFS3" SUFFIX ".so")
 target_include_directories(pfs3-driver PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/native" "${CMAKE_CURRENT_SOURCE_DIR}/compat" "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/include" "${CMAKE_CURRENT_BINARY_DIR}")
@@ -27,6 +28,12 @@ if(BUILD_TESTING)
  target_include_directories(pfs3-module-test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
  target_link_libraries(pfs3-module-test PRIVATE pfs3-driver)
  add_test(NAME pfs3-module-interface COMMAND pfs3-module-test)
+ add_executable(pfs3-canonical-core-link-test tests/test_canonical_core.c)
+ target_include_directories(pfs3-canonical-core-link-test PRIVATE
+   "${CMAKE_CURRENT_SOURCE_DIR}/native/filesystems/pfs3/core")
+ target_compile_options(pfs3-canonical-core-link-test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+ target_link_libraries(pfs3-canonical-core-link-test PRIVATE pfs3-driver)
+ add_test(NAME pfs3-canonical-core-link COMMAND pfs3-canonical-core-link-test)
 endif()
 install(TARGETS pfs3-driver LIBRARY DESTINATION /System/Filesystems)
 # Install only this filesystem's illustrated PDF beside its native shared object.
