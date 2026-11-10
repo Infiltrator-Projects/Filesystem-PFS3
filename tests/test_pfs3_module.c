@@ -1,15 +1,80 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
-#include "ifs_pfs3_module_v1.h"
-#include <string.h>
+/* SPDX-License-Identifier: GPL-3.0-or-later
+ * Strict Common V2 read-only PFS1/PFS2 media signatures and validated roots.
+ */
+#include <infiltratr/filesystem_module_v2.h>
+#include <stdint.h>
 #include <stdio.h>
-#define CHECK(x) do { if(!(x)) { fprintf(stderr,"failure: %s\n",#x);return 1; } } while(0)
-int main(void) {
- const IfsPfs3ModuleV1 *api=infiltrator_filesystem_pfs3_v1();
- CHECK(api && api->abi_version==IFS_PFS3_MODULE_V1);
- CHECK(api->structure_bytes>=sizeof(*api));
- CHECK(api->format_id && strcmp(api->format_id,"pfs3")==0);
- CHECK(api->capabilities==(IFS_PFS3_CAP_RUN | IFS_PFS3_CAP_FIXTURE) && api->run && api->fixture);
- CHECK(api->run(0,NULL,NULL)!=0);
- CHECK(api->fixture(0,NULL,NULL,NULL,0,NULL,NULL)!=0);
- return 0;
+#include <stdlib.h>
+#include <string.h>
+#define MEDIA (1024u*1024u)
+static unsigned char disk[MEDIA];
+static int fail_read;
+static int rd(void *ctx,uint64_t off,void *out,uint32_t n) {
+    (void)ctx;
+    if(fail_read || !out || off>MEDIA || n>MEDIA-off)return -1;
+    memcpy(out,disk+(size_t)off,n);return 0;
+}
+static void *alloc(void *ctx,size_t n){(void)ctx;return malloc(n);}
+static void release(void *ctx,void *p){(void)ctx;free(p);}
+static void be16(unsigned off,uint16_t x){
+    disk[off]=(unsigned char)(x>>8);
+    disk[off+1]=(unsigned char)x;
+}
+static void be32(unsigned off,uint32_t x){
+    disk[off]=(unsigned char)(x>>24);
+    disk[off+1]=(unsigned char)(x>>16);
+    disk[off+2]=(unsigned char)(x>>8);
+    disk[off+3]=(unsigned char)x;
+}
+extern const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void);
+#define CHECK(x) do{if(!(x)){fprintf(stderr,"PFS3 V2 failure %s:%d\n",#x,__LINE__);return 1;}}while(0)
+int main(void){
+    const IfsFsModuleApiV2 *api=infiltrator_filesystem_api_v2();
+    CHECK(ifs_fs_api_v2_valid(api,"pfs3"));
+    CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
+    CHECK(api->group_mask==IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE));
+    const IfsFsCoreOpsV2 *core=
+        (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
+    CHECK(core && core->header.capabilities==IFS_FS_CORE_PROBE);
+    CHECK(core->probe && !core->mount && !core->write);
+    CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
+    IfsFsHostRuntimeV2 host={0};
+    host.abi_version=IFS_FS_HOST_ABI_V2;
+    host.structure_bytes=sizeof(host);
+    host.capabilities=IFS_FS_HOST_READ_ONLY;
+    host.volume_bytes=MEDIA;
+    host.logical_sector_bytes=512u;
+    host.physical_sector_bytes=512u;
+    host.maximum_transfer_bytes=512u;
+    host.read_at=rd;host.allocate=alloc;host.release=release;
+    CHECK(ifs_fs_host_v2_valid(&host));
+    uint32_t variant=99u;
+    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND && variant==0u);
+    const unsigned off=1024u;
+    be32(off,0x50465302u); /* real on-disk PFS2 family identifier */
+    be32(off+4u,0x13u);    /* harddisk/split anodes/size field */
+    disk[off+20u]=4u;
+    memcpy(disk+off+21u,"TEST",4);
+    be32(off+52u,15u);be32(off+56u,4u);
+    be32(off+60u,3u);
+    be16(off+64u,1024u);be16(off+66u,2u);
+    be32(off+68u,150u);be32(off+72u,5u);
+    be32(off+84u,MEDIA/512u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    be32(off,0x50465301u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
+    be32(off,0x444f5301u); /* foreign Amiga DOS */
+    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
+    be32(off,0x50465302u);
+    be32(off+84u,42u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+    be32(off+84u,MEDIA/512u);
+    disk[off+20u]=0u;
+    CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+    disk[off+20u]=4u;
+    fail_read=1;CHECK(core->probe(&host,&variant)==IFS_FS_IO_ERROR);
+    fail_read=0;host.read_at=NULL;
+    CHECK(core->probe(&host,&variant)==IFS_FS_INVALID);
+    puts("PFS3-STRICT-COMMON-V2-PROBE-PASS");
+    return 0;
 }
