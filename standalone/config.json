@@ -2,6 +2,6 @@
   "repository": "Filesystem-PFS3",
   "module": "PFS3.so",
   "pdf": "docs/PFS3.pdf",
-  "abi": "infiltrator_filesystem_pfs3_v1",
+  "abi": "infiltrator_filesystem_api_v2",
   "build_system": "cmake"
 }
