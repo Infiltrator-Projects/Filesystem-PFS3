@@ -10,9 +10,11 @@
 #define MEDIA (1024u*1024u)
 static unsigned char disk[MEDIA];
 static int fail_read;
+static uint32_t logical_sector=512u,maximum_read=512u;
 static int rd(void *ctx,uint64_t off,void *out,uint32_t n) {
     (void)ctx;
-    if(fail_read || !out || off>MEDIA || n>MEDIA-off)return -1;
+    if(fail_read || !out || (off%logical_sector) || (n%logical_sector) ||
+       n>maximum_read || off>MEDIA || n>MEDIA-off)return -1;
     memcpy(out,disk+(size_t)off,n);return 0;
 }
 static void *alloc(void *ctx,size_t n){(void)ctx;return malloc(n);}
@@ -94,6 +96,27 @@ int main(void){
           mounted && mounted!=stale && info.variant==1u);
     CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
     CHECK(core->unmount(mounted)==IFS_FS_OK);
+    /* PFS3 media with 4K logical sectors has a 4K reserved block;
+     * its 512-byte root is still located at partition offset 1024. */
+    be16(off+64u,4096u);
+    be32(off+84u,MEDIA/4096u);
+    host.logical_sector_bytes=4096u;
+    host.physical_sector_bytes=4096u;
+    host.maximum_transfer_bytes=4096u;
+    logical_sector=4096u;maximum_read=4096u;
+    CHECK(ifs_fs_host_v2_valid(&host));
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK &&
+          info.block_bytes==4096u &&
+          info.free_bytes==150u*4096u);
+    CHECK(core->unmount(mounted)==IFS_FS_OK);
+    host.logical_sector_bytes=512u;
+    host.physical_sector_bytes=512u;
+    host.maximum_transfer_bytes=512u;
+    logical_sector=512u;maximum_read=512u;
+    be16(off+64u,1024u);
+    be32(off+84u,MEDIA/512u);
     be32(off,0x444f5301u); /* foreign Amiga DOS */
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
     be32(off,0x50465302u);

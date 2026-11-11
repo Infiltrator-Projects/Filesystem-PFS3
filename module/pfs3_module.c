@@ -19,10 +19,13 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     if(!variant || !ifs_fs_host_v2_valid(host))
         return IFS_FS_INVALID;
     *variant=0u;
-    if(host->volume_bytes<1536u || host->maximum_transfer_bytes<sizeof(raw))
-        return IFS_FS_NOT_FOUND;
-    if(host->read_at(host->context,1024u,raw,sizeof(raw))!=0)
-        return IFS_FS_IO_ERROR;
+    if(host->volume_bytes<1536u)return IFS_FS_NOT_FOUND;
+    {
+        /* Partition-relative PFS3 roots begin at byte 1024 even on 4Kn. */
+        int rc=ifs_fs_host_read_bytes_v2(host,1024u,raw,
+                                        (uint32_t)sizeof(raw));
+        if(rc!=IFS_FS_OK)return rc;
+    }
     if(ifs_pfs3_decode_root(raw,sizeof(raw),&root)!=0)
         return IFS_FS_CORRUPT;
     kind=ifs_pfs3_classify_disk_type(root.disk_type);
