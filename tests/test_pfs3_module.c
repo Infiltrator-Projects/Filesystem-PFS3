@@ -2,6 +2,7 @@
  * Strict Common V2 read-only PFS1/PFS2 media signatures and validated roots.
  */
 #include <infiltratr/filesystem_module_v2.h>
+#include "../native/filesystems/pfs3/core/pfs3_core.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,11 +33,16 @@ int main(void){
     const IfsFsModuleApiV2 *api=infiltrator_filesystem_api_v2();
     CHECK(ifs_fs_api_v2_valid(api,"pfs3"));
     CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
-    CHECK(api->group_mask==IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE));
+    CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)));
     const IfsFsCoreOpsV2 *core=
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
-    CHECK(core && core->header.capabilities==IFS_FS_CORE_PROBE);
-    CHECK(core->probe && !core->mount && !core->write);
+    const IfsFsVolumeOpsV2 *ops=
+        (const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
+    CHECK(core && core->header.capabilities==(IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT));
+    CHECK(core->probe && core->mount && core->unmount && !core->write);
+    CHECK(ops && ops->header.capabilities==IFS_FS_VOLUME_QUERY &&
+          ops->query && !ops->repair && !ops->format);
     CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
     IfsFsHostRuntimeV2 host={0};
     host.abi_version=IFS_FS_HOST_ABI_V2;
@@ -61,8 +67,33 @@ int main(void){
     be32(off+68u,150u);be32(off+72u,5u);
     be32(off+84u,MEDIA/512u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    IfsFsVolumeInfoV2 info={0},snapshot={0};
+    void *mounted=NULL,*stale=NULL;
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK && mounted);
+    stale=mounted;
+    CHECK(info.variant==2u && info.block_bytes==512u &&
+          info.total_bytes==MEDIA && info.free_bytes==150u*512u &&
+          info.max_name_bytes==IFS_PFS3_DEFAULT_FILENAME_SIZE);
+    snapshot.structure_bytes=sizeof(snapshot);
+    CHECK(ops->query(mounted,&snapshot)==IFS_FS_OK &&
+          snapshot.total_bytes==info.total_bytes &&
+          snapshot.free_bytes==info.free_bytes);
+    {
+        void *duplicate=NULL;
+        CHECK(core->mount(&host,&duplicate,&snapshot)==IFS_FS_BUSY);
+        CHECK(!duplicate);
+    }
+    CHECK(core->unmount(mounted)==IFS_FS_OK);
+    CHECK(core->unmount(stale)==IFS_FS_INVALID);
+    CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
     be32(off,0x50465301u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK &&
+          mounted && mounted!=stale && info.variant==1u);
+    CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
+    CHECK(core->unmount(mounted)==IFS_FS_OK);
     be32(off,0x444f5301u); /* foreign Amiga DOS */
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
     be32(off,0x50465302u);
@@ -75,6 +106,6 @@ int main(void){
     fail_read=1;CHECK(core->probe(&host,&variant)==IFS_FS_IO_ERROR);
     fail_read=0;host.read_at=NULL;
     CHECK(core->probe(&host,&variant)==IFS_FS_INVALID);
-    puts("PFS3-STRICT-COMMON-V2-PROBE-PASS");
+    puts("PFS3-STRICT-COMMON-V2-MOUNT-QUERY-PASS");
     return 0;
 }
