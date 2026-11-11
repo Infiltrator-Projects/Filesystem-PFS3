@@ -100,6 +100,8 @@ int main(void){
      * its 512-byte root is still located at partition offset 1024. */
     be16(off+64u,4096u);
     be32(off+84u,MEDIA/4096u);
+    /* Classic PFS1 forbids 4K reserved blocks; PFS2 permits them. */
+    be32(off,0x50465302u);
     host.logical_sector_bytes=4096u;
     host.physical_sector_bytes=4096u;
     host.maximum_transfer_bytes=4096u;
