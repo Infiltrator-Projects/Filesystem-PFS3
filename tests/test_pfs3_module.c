@@ -107,7 +107,7 @@ int main(void){
     host.maximum_transfer_bytes=4096u;
     logical_sector=4096u;maximum_read=4096u;
     CHECK(ifs_fs_host_v2_valid(&host));
-    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
     info.structure_bytes=sizeof(info);
     CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK &&
           info.block_bytes==4096u &&
