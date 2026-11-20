@@ -52,8 +52,10 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
         int rc=ifs_fs_host_read_bytes_v2(host,offset,extension_bytes,
                                          (uint32_t)sizeof(extension_bytes));
         if (rc!=IFS_FS_OK) return rc;
-        const uint32_t reserved=(root.last_reserved-root.first_reserved+1u)*
-                                host->logical_sector_bytes/root.reserved_block_size;
+        const uint32_t sectors_per_reserved=
+            root.reserved_block_size/host->logical_sector_bytes;
+        const uint32_t reserved=
+            (root.last_reserved-root.first_reserved+1u)/sectors_per_reserved;
         uint16_t max_name=0u;
         if (ifs_pfs3_decode_extension(extension_bytes,sizeof(extension_bytes),
                                       &ext)!=0 ||
