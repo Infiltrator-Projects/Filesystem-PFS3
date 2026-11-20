@@ -78,6 +78,33 @@ int main(void){
     CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
     be32(off+4u,0x13u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    /* Actual reserved-block extension: validate its header, filename
+     * setting and uncommitted postponed operations before mounting. */
+    const unsigned ext_off=6u*512u;
+    be32(off+4u,0x433u); /* long names and root extension */
+    be32(off+88u,6u);
+    be16(ext_off,IFS_PFS3_EXTENSION_ID);
+    be16(ext_off+56u,64u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    {
+        IfsFsVolumeInfoV2 ext_info={.structure_bytes=sizeof(ext_info)};
+        void *ext_mount=NULL;
+        CHECK(core->mount(&host,&ext_mount,&ext_info)==IFS_FS_OK && ext_mount);
+        CHECK(ext_info.max_name_bytes==64u);
+        CHECK(core->unmount(ext_mount)==IFS_FS_OK);
+    }
+    be32(ext_off+28u,IFS_PFS3_POSTPONED_FREEBLOCKS_FREE);
+    CHECK(core->probe(&host,&variant)==IFS_FS_UNSUPPORTED);
+    be32(ext_off+28u,IFS_PFS3_POSTPONED_NONE);
+    be16(ext_off,0u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+    be16(ext_off,IFS_PFS3_EXTENSION_ID);
+    be16(ext_off+56u,1u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+    be16(ext_off+56u,64u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    be32(off+4u,0x13u);
+    be32(off+88u,0u);
     IfsFsVolumeInfoV2 info={0},snapshot={0};
     void *mounted=NULL,*stale=NULL;
     info.structure_bytes=sizeof(info);
