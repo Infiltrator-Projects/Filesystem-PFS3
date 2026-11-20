@@ -45,7 +45,8 @@ int main(void){
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     const IfsFsVolumeOpsV2 *ops=
         (const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
-    CHECK(core && core->header.capabilities==(IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT));
+    CHECK(core && core->header.capabilities==(IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT|
+          IFS_FS_CORE_STAT|IFS_FS_CORE_LIST|IFS_FS_CORE_READ));
     CHECK(core->probe && core->mount && core->unmount && !core->write);
     CHECK(ops && ops->header.capabilities==IFS_FS_VOLUME_QUERY &&
           ops->query && !ops->repair && !ops->format);
@@ -72,6 +73,17 @@ int main(void){
     be16(off+64u,1024u);be16(off+66u,2u);
     be32(off+68u,150u);be32(off+72u,5u);
     be32(off+84u,MEDIA/512u);
+    /* Real reserved index/anode/root directory blocks are mandatory for
+     * the hosted file namespace. This also proves PFS3 media isn't
+     * accepted simply by drawing a synthetic superblock envelope. */
+    const unsigned idx=4u*512u, ab=6u*512u, dir=8u*512u;
+    be32(off+116u,4u);
+    be16(idx,0x4942u);be32(idx+8u,0u);be32(idx+12u,6u);
+    be16(ab,IFS_PFS3_ANODEBLOCK_ID);be32(ab+8u,0u);
+    be32(ab+16u+5u*12u,1u);be32(ab+16u+5u*12u+4u,8u);
+    be16(dir,IFS_PFS3_DIRBLOCK_ID);
+    be32(dir+12u,5u);be32(dir+16u,5u);
+
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
     /* Unknown feature flags must not masquerade as a supported PFS volume. */
     be32(off+4u,0x80000013u);
@@ -164,6 +176,12 @@ int main(void){
     CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK &&
           info.block_bytes==4096u &&
           info.free_bytes==150u*4096u);
+    {
+        char listing[32]={0};
+        IfsFsEntryV2 entry={.structure_bytes=sizeof(entry),
+                            .name=listing,.name_capacity=sizeof(listing)};
+        CHECK(core->stat(mounted,"/",&entry)==IFS_FS_UNSUPPORTED);
+    }
     CHECK(core->unmount(mounted)==IFS_FS_OK);
     host.logical_sector_bytes=512u;
     host.physical_sector_bytes=512u;

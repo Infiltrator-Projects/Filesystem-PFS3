@@ -22,7 +22,8 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h"
 # worker/service shim, in the installed Common V2 provider.
 add_library(pfs3-driver SHARED
   module/pfs3_module.c
-  native/filesystems/pfs3/core/pfs3_core.c)
+  native/filesystems/pfs3/core/pfs3_core.c
+  native/filesystems/pfs3/core/pfs3_reader_v2.c)
 set_target_properties(pfs3-driver PROPERTIES
   PREFIX "" OUTPUT_NAME "PFS3" SUFFIX ".so" C_VISIBILITY_PRESET hidden)
 target_compile_options(pfs3-driver PRIVATE -Wall -Wextra -Wpedantic -Werror)
