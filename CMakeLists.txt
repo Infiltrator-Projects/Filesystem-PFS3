@@ -71,6 +71,21 @@ if(BUILD_TESTING)
     pfs3-driver InfiltratrCommon::Common)
   add_test(NAME pfs3-v2-multivolume-probe-mount COMMAND pfs3-module-test)
 
+  # Qualify the source-owned direct-index reader before production V2
+  # advertises namespace callbacks; never promote on a compile-only pass.
+  add_executable(pfs3-native-reader-test
+    tests/test_pfs3_reader_v2.c
+    native/filesystems/pfs3/core/pfs3_reader_v2.c
+    native/filesystems/pfs3/core/pfs3_core.c)
+  target_include_directories(pfs3-native-reader-test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/native/filesystems/pfs3/core"
+    "${infiltratr_common_SOURCE_DIR}/include")
+  target_compile_options(pfs3-native-reader-test PRIVATE
+    -Wall -Wextra -Wpedantic -Werror)
+  target_link_libraries(pfs3-native-reader-test PRIVATE
+    InfiltratrCommon::Common)
+  add_test(NAME pfs3-real-direct-index-v2-reader COMMAND pfs3-native-reader-test)
+
   # Exercise the native disk decoder without exporting its private symbols.
   add_executable(pfs3-canonical-core-link-test
     tests/test_canonical_core.c
