@@ -73,6 +73,11 @@ int main(void){
     be32(off+68u,150u);be32(off+72u,5u);
     be32(off+84u,MEDIA/512u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    /* Unknown feature flags must not masquerade as a supported PFS volume. */
+    be32(off+4u,0x80000013u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+    be32(off+4u,0x13u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
     IfsFsVolumeInfoV2 info={0},snapshot={0};
     void *mounted=NULL,*stale=NULL;
     info.structure_bytes=sizeof(info);

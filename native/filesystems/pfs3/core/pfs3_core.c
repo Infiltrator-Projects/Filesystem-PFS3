@@ -409,6 +409,10 @@ IfsPfs3RootStatus ifs_pfs3_validate_root_geometry(
         return IFS_PFS3_ROOT_BAD_DISK_TYPE;
     if (options == 0U)
         return IFS_PFS3_ROOT_ZERO_OPTIONS;
+    /* Unknown on-disk feature modes cannot be interpreted safely by a
+     * read-only Common V2 provider. Never silently accept them. */
+    if (options & ~IFS_PFS3_KNOWN_MODE_MASK)
+        return IFS_PFS3_ROOT_UNKNOWN_OPTIONS;
     if (logical_block_size < 512U ||
         !ifs_pfs3_is_power_of_two(logical_block_size))
         return IFS_PFS3_ROOT_INVALID_LOGICAL_BLOCK_SIZE;
@@ -500,6 +504,8 @@ const char *ifs_pfs3_root_status_string(const IfsPfs3RootStatus status)
         return "unsupported PFS disk type";
     case IFS_PFS3_ROOT_ZERO_OPTIONS:
         return "PFS root options are zero";
+    case IFS_PFS3_ROOT_UNKNOWN_OPTIONS:
+        return "PFS root has unsupported on-disk feature flags";
     case IFS_PFS3_ROOT_INVALID_LOGICAL_BLOCK_SIZE:
         return "invalid PFS logical block size";
     case IFS_PFS3_ROOT_INVALID_RESERVED_BLOCK_SIZE:
