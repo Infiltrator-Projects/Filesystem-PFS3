@@ -9,6 +9,7 @@
 #include <string.h>
 #define MEDIA (1024u*1024u)
 static unsigned char disk[MEDIA];
+static unsigned char initial_media[MEDIA];
 static int fail_read;
 static uint32_t logical_sector=512u,maximum_read=512u;
 static int rd(void *ctx,uint64_t off,void *out,uint32_t n) {
@@ -83,6 +84,22 @@ int main(void){
     be32(ab+16u+5u*12u,1u);be32(ab+16u+5u*12u+4u,8u);
     be16(dir,IFS_PFS3_DIRBLOCK_ID);
     be32(dir+12u,5u);be32(dir+16u,5u);
+    /* Canonical PFS3 file entry and two-sector anode data chain. */
+    be32(ab+16u+6u*12u,2u);
+    be32(ab+16u+6u*12u+4u,20u);
+    {
+        unsigned entry=dir+IFS_PFS3_DIRBLOCK_HEADER_BYTES;
+        disk[entry]=30u;
+        disk[entry+1u]=(unsigned char)-3;
+        be32(entry+2u,6u);
+        be32(entry+6u,1024u);
+        disk[entry+17u]=10u;
+        memcpy(disk+entry+IFS_PFS3_DIRENTRY_NAME_OFFSET,"kernel.img",10u);
+        disk[entry+28u]=0u;
+        disk[entry+30u]=0u;
+        for(unsigned i=0u;i<1024u;++i)
+            disk[20u*512u+i]=(unsigned char)((i*13u+31u)&255u);
+    }
 
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
     /* Unknown feature flags must not masquerade as a supported PFS volume. */
@@ -137,6 +154,30 @@ int main(void){
     CHECK(ops->query(mounted,&snapshot)==IFS_FS_OK &&
           snapshot.total_bytes==info.total_bytes &&
           snapshot.free_bytes==info.free_bytes);
+    /* Read through the production Common V2 ABI, not a private parser. */
+    memcpy(initial_media,disk,MEDIA);
+    {
+        char name[128]={0},data[1024]={0};
+        IfsFsEntryV2 entry={.structure_bytes=sizeof(entry),
+                            .name=name,.name_capacity=sizeof(name)};
+        CHECK(core->stat(mounted,"/",&entry)==IFS_FS_OK &&
+              entry.type==IFS_FS_ENTRY_DIRECTORY);
+        CHECK(core->stat(mounted,"/kernel.img",&entry)==IFS_FS_OK &&
+              entry.type==IFS_FS_ENTRY_FILE && entry.size_bytes==1024u);
+        CHECK(core->directory_entry(mounted,"/",0u,&entry)==IFS_FS_OK &&
+              strcmp(name,"kernel.img")==0);
+        CHECK(core->directory_entry(mounted,"/",1u,&entry)==IFS_FS_END);
+        CHECK(core->read(mounted,"/kernel.img",0u,data,1024u)==IFS_FS_OK);
+        for (unsigned i=0u;i<1024u;++i)
+            CHECK((unsigned char)data[i]==(unsigned char)((i*13u+31u)&255u));
+        CHECK(core->read(mounted,"/kernel.img",511u,data,24u)==IFS_FS_OK);
+        for (unsigned i=0u;i<24u;++i)
+            CHECK((unsigned char)data[i]==(unsigned char)(((i+511u)*13u+31u)&255u));
+        CHECK(core->stat(mounted,"/missing",&entry)==IFS_FS_NOT_FOUND);
+        CHECK(core->stat(mounted,"/../kernel.img",&entry)==IFS_FS_INVALID);
+        CHECK(core->read(mounted,"/kernel.img",1024u,data,1u)==IFS_FS_INVALID);
+        CHECK(memcmp(initial_media,disk,MEDIA)==0);
+    }
     {
         void *parallel=NULL;
         IfsFsVolumeInfoV2 other={.structure_bytes=sizeof(other)};
@@ -153,6 +194,12 @@ int main(void){
     CHECK(core->unmount(mounted)==IFS_FS_OK);
     CHECK(core->unmount(stale)==IFS_FS_INVALID);
     CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
+    {
+        char name[32]={0};
+        IfsFsEntryV2 entry={.structure_bytes=sizeof(entry),
+                            .name=name,.name_capacity=sizeof(name)};
+        CHECK(core->stat(stale,"/",&entry)==IFS_FS_INVALID);
+    }
     be32(off,0x50465301u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
     info.structure_bytes=sizeof(info);
