@@ -37,13 +37,38 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
                                     (uint32_t)count)!=IFS_PFS3_MEDIA_OK ||
        root.blocks_free>count)
         return IFS_FS_CORRUPT;
+    /* The optional PFS root extension is real on-media metadata. Reject
+     * damaged extension blocks and outstanding deferred operations before
+     * declaring the volume safe for a read-only V2 session. */
+    uint32_t filename_bytes=IFS_PFS3_DEFAULT_FILENAME_SIZE;
+    if (root.options & IFS_PFS3_MODE_EXTENSION) {
+        unsigned char extension_bytes[IFS_PFS3_EXTENSION_MIN_BYTES];
+        IfsPfs3ExtensionRecord ext;
+        if (root.extension >= count ||
+            (uint64_t)root.extension > UINT64_MAX / host->logical_sector_bytes)
+            return IFS_FS_CORRUPT;
+        const uint64_t offset=(uint64_t)root.extension*
+                              host->logical_sector_bytes;
+        int rc=ifs_fs_host_read_bytes_v2(host,offset,extension_bytes,
+                                         (uint32_t)sizeof(extension_bytes));
+        if (rc!=IFS_FS_OK) return rc;
+        const uint32_t reserved=(root.last_reserved-root.first_reserved+1u)*
+                                host->logical_sector_bytes/root.reserved_block_size;
+        uint16_t max_name=0u;
+        if (ifs_pfs3_decode_extension(extension_bytes,sizeof(extension_bytes),
+                                      &ext)!=0 ||
+            ifs_pfs3_validate_extension(&ext,reserved,&max_name)!=0)
+            return IFS_FS_CORRUPT;
+        if (ext.postponed_operation!=IFS_PFS3_POSTPONED_NONE)
+            return IFS_FS_UNSUPPORTED;
+        filename_bytes=max_name;
+    }
     *variant=(uint32_t)kind;
     if(info) {
         info->structure_bytes=sizeof(*info);
         info->variant=*variant;
-        info->max_name_bytes=
-            (root.options & IFS_PFS3_MODE_LONGFN)?
-            IFS_PFS3_MAX_FILENAME_SIZE:IFS_PFS3_DEFAULT_FILENAME_SIZE;
+        info->max_name_bytes=(root.options & IFS_PFS3_MODE_LONGFN)?
+            filename_bytes:IFS_PFS3_DEFAULT_FILENAME_SIZE;
         info->block_bytes=host->logical_sector_bytes;
         info->total_bytes=count*host->logical_sector_bytes;
         info->free_bytes=(uint64_t)root.blocks_free*
