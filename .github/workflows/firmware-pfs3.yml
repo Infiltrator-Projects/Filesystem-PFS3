@@ -32,6 +32,22 @@ jobs:
           ! nm -u "$firmware" | grep .
           ! readelf -dW "$firmware" | grep -F '(NEEDED)'
           ! nm -D "$firmware" | grep -E 'infiltrator_filesystem_.*_v1'
+      - name: Verify same reader is embedded unchanged in installed PFS3.so
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          DESTDIR="$RUNNER_TEMP/installed" cmake --install build
+          module="$RUNNER_TEMP/installed/System/Filesystems/PFS3.so"
+          test -s "$module"
+          readelf -SW "$module" | grep -F .infiltrator_boot
+          objcopy --dump-section ".infiltrator_boot=$RUNNER_TEMP/actual.elf" "$module"
+          cmp "$RUNNER_TEMP/actual.elf" build/firmware/PFS3.so
+          ! nm -D --defined-only "$module" | grep -E 'infiltrator_filesystem_.*_v1'
+          test "$(find "$RUNNER_TEMP/installed" -type f | wc -l)" -eq 2
+          ! find "$RUNNER_TEMP/installed" -name '*.ko' | grep .
+          echo PFS3_RELEASE_SO_EMBEDS_IDENTICAL_FREESTANDING_ELF
       - name: Qualify using unmodified BOOT 0.1.77 production validator
         shell: bash
         run: |
