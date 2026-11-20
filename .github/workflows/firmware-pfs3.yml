@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Source-owned PFS3 freestanding V2 engineering gate; no release or ESP writes.
+name: Qualify PFS3 freestanding Common V2 ELF
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pfs3-firmware:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install compiler, Common and ELF validation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential binutils cmake git libssl-dev
+      - name: Compile exact canonical PFS3 reader without libc
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake -S module/firmware -B build/firmware \
+            -DCMAKE_BUILD_TYPE=Release \
+            "-DCOMMON_INCLUDE_DIR=$PWD/build/_deps/infiltratr_common-src/include"
+          cmake --build build/firmware --parallel 2
+          firmware=build/firmware/PFS3.so
+          test -s "$firmware"
+          nm -D --defined-only "$firmware" | grep -F infiltrator_filesystem_api_v2
+          ! nm -u "$firmware" | grep .
+          ! readelf -dW "$firmware" | grep -F '(NEEDED)'
+          ! nm -D "$firmware" | grep -E 'infiltrator_filesystem_.*_v1'
+      - name: Qualify using unmodified BOOT 0.1.77 production validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          boot=infiltrator-boot_0.1.77_amd64.deb
+          curl -fsSL --retry 3 \
+            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
+            -o "$RUNNER_TEMP/$boot"
+          printf '%s  %s\n' \
+            4b2fa8eaa116b7e719329c5bbaa39ee3a093fbe1c1eac0c57440d0f82217d8a5 \
+            "$RUNNER_TEMP/$boot" | sha256sum -c -
+          dpkg-deb -x "$RUNNER_TEMP/$boot" "$RUNNER_TEMP/boot"
+          "$RUNNER_TEMP/boot/usr/lib/infiltrator-boot/validate-module" \
+            build/firmware/PFS3.so
+          echo PFS3_FREESTANDING_V2_PRODUCTION_VALIDATOR_PASS
