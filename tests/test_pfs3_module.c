@@ -92,9 +92,9 @@ int main(void){
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
     /* Actual reserved-block extension: validate its header, filename
      * setting and uncommitted postponed operations before mounting. */
-    const unsigned ext_off=6u*512u;
+    const unsigned ext_off=10u*512u;
     be32(off+4u,0x433u); /* long names and root extension */
-    be32(off+88u,6u);
+    be32(off+88u,10u);
     be16(ext_off,IFS_PFS3_EXTENSION_ID);
     be16(ext_off+56u,64u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
