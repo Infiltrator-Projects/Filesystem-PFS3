@@ -202,13 +202,17 @@ static const IfsFsGroupHeaderV2 *query(
     if(id==IFS_FS_GROUP_VOLUME)return &volume_ops.header;
     return NULL;
 }
-__attribute__((used,section(".ifsmeta")))
+__attribute__((used,retain,section(".ifsmeta")))
 static const char identity[]="IFS-MODULE:pfs3:common2";
 static const IfsFsModuleApiV2 api={
     .abi_version=IFS_FS_COMMON_ABI_V2,
     .structure_bytes=sizeof(IfsFsModuleApiV2),
     .format_id="pfs3",
+#ifdef IFS_PFS3_FIRMWARE_BUILD
+    .runtime_profiles=IFS_FS_PROFILE_FREESTANDING|IFS_FS_PROFILE_FIRMWARE,
+#else
     .runtime_profiles=IFS_FS_PROFILE_HOSTED,
+#endif
     .group_mask=IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
                 IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME),
     .query_group=query

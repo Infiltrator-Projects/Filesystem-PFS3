@@ -35,6 +35,38 @@ target_include_directories(pfs3-driver PRIVATE
   "${infiltratr_common_SOURCE_DIR}/include")
 target_link_libraries(pfs3-driver PRIVATE InfiltratrCommon::Common)
 
+
+# The same format-owned C code is compiled as a no-import UEFI reader and
+# embedded in the one installed Common V2 shared object. Validation and OVMF
+# qualification are separate release gates, not assumed by compilation.
+set(PFS3_FIRMWARE_DIR "${CMAKE_CURRENT_BINARY_DIR}/firmware")
+set(PFS3_FIRMWARE_ELF "${PFS3_FIRMWARE_DIR}/PFS3.so")
+add_custom_command(OUTPUT "${PFS3_FIRMWARE_ELF}"
+ COMMAND "${CMAKE_COMMAND}" -S "${CMAKE_CURRENT_SOURCE_DIR}/module/firmware"
+   -B "${PFS3_FIRMWARE_DIR}" -DCMAKE_BUILD_TYPE=Release
+   "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+   "-DCOMMON_INCLUDE_DIR=${infiltratr_common_SOURCE_DIR}/include"
+ COMMAND "${CMAKE_COMMAND}" --build "${PFS3_FIRMWARE_DIR}" --parallel 2
+ DEPENDS module/firmware/CMakeLists.txt module/firmware/runtime.c
+   module/pfs3_module.c
+   native/filesystems/pfs3/core/pfs3_core.c
+   native/filesystems/pfs3/core/pfs3_reader_v2.c
+   native/filesystems/pfs3/core/pfs3_reader_v2.h
+ VERBATIM)
+add_custom_target(pfs3-firmware-elf DEPENDS "${PFS3_FIRMWARE_ELF}")
+if(NOT CMAKE_OBJCOPY)
+ find_program(CMAKE_OBJCOPY NAMES objcopy llvm-objcopy REQUIRED)
+endif()
+add_dependencies(pfs3-driver pfs3-firmware-elf)
+set_property(TARGET pfs3-driver APPEND PROPERTY LINK_DEPENDS "${PFS3_FIRMWARE_ELF}")
+add_custom_command(TARGET pfs3-driver POST_BUILD
+ COMMAND "${CMAKE_OBJCOPY}" --add-section
+   ".infiltrator_boot=${PFS3_FIRMWARE_ELF}"
+   --set-section-flags .infiltrator_boot=readonly
+   "$<TARGET_FILE:pfs3-driver>"
+ VERBATIM)
+
+
 if(BUILD_TESTING)
   # Keep the historical worker/fixture code for independent regression only;
   # no legacy V1 ABI is installed with the production PFS3.so.
