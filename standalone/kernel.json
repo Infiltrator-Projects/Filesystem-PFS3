@@ -1,7 +1,1 @@
-{
-  "name": "pfs3",
-  "directory": "native/filesystems/pfs3/linux",
-  "paths": [
-    "native/filesystems/pfs3"
-  ]
-}
+null

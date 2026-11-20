@@ -1,12 +1,16 @@
 # Filesystem-PFS3
-Independent filesystem implementation for InfiltratorOS, using the shared Common ABI.
 
-## Installer files
+Canonical format parsing is owned by this repository, with the portable
+PFS3 core in `native/filesystems/pfs3/core/`. The installed provider is
+`/System/Filesystems/PFS3.so` and the illustrated manual is installed beside
+other filesystem documentation.
 
-- `/System/Filesystems/PFS3.so`
-- `/System/Resources/Documentation/Filesystem-PFS3.pdf`
-- `/System/Kernel/Filesystems/pfs3.ko`
+Its current Common V2 CORE supports real root/geometry probing, bounded
+read-only metadata mount sessions, and VOLUME query. **PFS3 is not yet
+BOOT-compatible**: full PFS3 anode/directory traversal and file reads, a
+shared freestanding UEFI reader, production BOOT validation and disposable
+OVMF kernel/initramfs qualification are outstanding.
 
-The published Debian package installs these three regular files. A manual native RUN compiles the shared object and Linux adapter locally, generates the PDF, and replaces all three files. It uses the running kernel headers by default. Use `--kernel-build DIRECTORY` for a prepared kernel build with `Module.symvers`. The kernel module is stored for manual use.
-
-InfiltratorOS calls `--system-package-mode` and decides which outputs need updating. Its worker builds a missing or older SO, repairs the PDF independently, and stores the matching released kernel module when available. Use `--build-only --output DIRECTORY` to build a Debian package.
+The prior worker/fixture/OS-specific code is retained as non-installed test
+support. No `.ko` is shipped as a substitute. The hosted DEB and native RUN
+qualify the V2 ELF but are not newly published as BOOT-compatible releases.

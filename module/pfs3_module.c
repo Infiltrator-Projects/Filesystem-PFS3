@@ -5,6 +5,7 @@
  * Defragmentation, writes and repair are not yet qualified V2 services.
  */
 #include <infiltratr/filesystem_module_v2.h>
+#include <infiltratr/filesystem_ro_sessions_v2.h>
 #include "pfs3_core.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -54,50 +55,32 @@ static int probe(const IfsFsHostRuntimeV2 *host,uint32_t *variant)
 {
     return examine(host,variant,NULL);
 }
-/* Single read-only session with a never-reused generation handle. */
-static struct {
-    uintptr_t generation,active;
-    IfsFsVolumeInfoV2 info;
-} session;
-static int live(void *volume)
-{
-    return session.active!=0u && (uintptr_t)volume==session.active;
-}
+/* Common V2 does not allow a process-wide one-volume singleton. Track
+ * independent bounded read-only metadata sessions with no reused handles.
+ * This does not advertise any unimplemented directory/file operation. */
+static IfsFsReadOnlySessionsV2 sessions = IFS_FS_RO_SESSIONS_INIT_V2;
 static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
                         IfsFsVolumeInfoV2 *info)
 {
-    IfsFsVolumeInfoV2 observed={0};
+    IfsFsVolumeInfoV2 measured={0};
     uint32_t variant=0u;
-    int result;
-    if(!volume || !info || info->structure_bytes<sizeof(*info))
+    int rc;
+    if (!volume || !info || info->structure_bytes<sizeof(*info))
         return IFS_FS_INVALID;
     *volume=NULL;
-    if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
-    /* Until PFS3 V2 writes and recovery qualify, CORE.MOUNT must never
-     * accept an exclusive writable host even for a valid PFS1/PFS2 root. */
-    if(!(host->capabilities & IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
-    if(session.active || session.generation==UINTPTR_MAX)
-        return IFS_FS_BUSY;
-    result=examine(host,&variant,&observed);
-    if(result!=IFS_FS_OK)return result;
-    session.active=++session.generation;
-    session.info=observed;
-    *info=observed;
-    *volume=(void *)session.active;
-    return IFS_FS_OK;
+    if (!ifs_fs_host_v2_valid(host)) return IFS_FS_INVALID;
+    if (!(host->capabilities & IFS_FS_HOST_READ_ONLY)) return IFS_FS_ACCESS;
+    rc=examine(host,&variant,&measured);
+    if (rc!=IFS_FS_OK) return rc;
+    return ifs_fs_ro_session_open_v2(&sessions,&measured,volume,info);
 }
 static int unmount_volume(void *volume)
 {
-    if(!live(volume))return IFS_FS_INVALID;
-    session.active=0u;
-    return IFS_FS_OK;
+    return ifs_fs_ro_session_close_v2(&sessions,volume);
 }
 static int query_volume(void *volume,IfsFsVolumeInfoV2 *info)
 {
-    if(!live(volume) || !info || info->structure_bytes<sizeof(*info))
-        return IFS_FS_INVALID;
-    *info=session.info;
-    return IFS_FS_OK;
+    return ifs_fs_ro_session_query_v2(&sessions,volume,info);
 }
 static const IfsFsCoreOpsV2 core={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsCoreOpsV2),
