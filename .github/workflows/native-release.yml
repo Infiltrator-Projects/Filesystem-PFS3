@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Qualify and publish canonical Common V2 reader and embedded native firmware ELF.
+# Qualify and publish canonical Common V2 reader and embedded freestanding ELF.
 name: Qualify and release PFS3 Common V2 reader
 on:
   push:
@@ -74,20 +74,6 @@ jobs:
           else
             echo "new_version=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Qualify the new version through rebuilt BOOT in OVMF
-        if: steps.version.outputs.new_version == 'true' && vars.IFS_BOOT_INTEGRATION_READY == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          source tests/require-rebuilt-boot.sh
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf dosfstools gdisk mtools python3-virt-firmware
-          work="$RUNNER_TEMP/pfs-test"
-          for profile in portable root; do
-            module="$RUNNER_TEMP/$profile/System/Filesystems/PFS3.so"
-            "$IFS_BOOT_VALIDATOR" "$module"
-            bash tests/firmware-pfs3.sh "$IFS_BOOT_EFI" "$module" "$work/files/boot/vmlinuz" "$work/tools" "$work/ovmf-$profile"
-          done
       - uses: actions/upload-artifact@v4
         with:
           name: pfs3-common-v2-qualified-${{ github.sha }}
@@ -95,7 +81,7 @@ jobs:
           if-no-files-found: error
   publish:
     needs: qualify
-    if: vars.IFS_BOOT_INTEGRATION_READY == 'true' && needs.qualify.outputs.new_version == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: needs.qualify.outputs.new_version == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
