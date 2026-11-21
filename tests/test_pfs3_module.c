@@ -11,9 +11,17 @@
 static unsigned char disk[MEDIA];
 static unsigned char initial_media[MEDIA];
 static int fail_read;
+static const IfsFsCoreOpsV2 *reentrant_core;
+static void *reentrant_volume;
+static int close_result;
 static uint32_t logical_sector=512u,maximum_read=512u;
 static int rd(void *ctx,uint64_t off,void *out,uint32_t n) {
     (void)ctx;
+    if (reentrant_volume) {
+        void *handle=reentrant_volume;
+        reentrant_volume=NULL;
+        close_result=reentrant_core->unmount(handle);
+    }
     if(fail_read || !out || (off%logical_sector) || (n%logical_sector) ||
        n>maximum_read || off>MEDIA || n>MEDIA-off)return -1;
     memcpy(out,disk+(size_t)off,n);return 0;
@@ -173,7 +181,10 @@ int main(void){
         CHECK(core->directory_entry(mounted,"/",0u,&entry)==IFS_FS_OK &&
               strcmp(name,"kernel.img")==0);
         CHECK(core->directory_entry(mounted,"/",1u,&entry)==IFS_FS_END);
+        reentrant_core=core;
+        reentrant_volume=mounted;
         CHECK(core->read(mounted,"/kernel.img",0u,data,1024u)==IFS_FS_OK);
+        CHECK(!reentrant_volume && close_result==IFS_FS_BUSY);
         for (unsigned i=0u;i<1024u;++i)
             CHECK((unsigned char)data[i]==(unsigned char)((i*13u+31u)&255u));
         CHECK(core->read(mounted,"/kernel.img",511u,data,24u)==IFS_FS_OK);
@@ -213,27 +224,20 @@ int main(void){
           mounted && mounted!=stale && info.variant==1u);
     CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
     CHECK(core->unmount(mounted)==IFS_FS_OK);
-    /* PFS3 media with 4K logical sectors has a 4K reserved block;
-     * its 512-byte root is still located at partition offset 1024. */
-    be16(off+64u,4096u);
-    be32(off+84u,MEDIA/4096u);
-    /* Classic PFS1 forbids 4K reserved blocks; PFS2 permits them. */
-    be32(off,0x50465302u);
+    /* Repeat the actual 512-byte PFS volume through a 4Kn transport.
+     * The on-media block numbers, free space and file contents stay the same. */
     host.logical_sector_bytes=4096u;
     host.physical_sector_bytes=4096u;
     host.maximum_transfer_bytes=4096u;
     logical_sector=4096u;maximum_read=4096u;
-    CHECK(ifs_fs_host_v2_valid(&host));
-    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==2u);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==1u);
     info.structure_bytes=sizeof(info);
     CHECK(core->mount(&host,&mounted,&info)==IFS_FS_OK &&
-          info.block_bytes==4096u &&
-          info.free_bytes==150u*4096u);
+          info.block_bytes==512u && info.free_bytes==150u*512u);
     {
-        char listing[32]={0};
-        IfsFsEntryV2 entry={.structure_bytes=sizeof(entry),
-                            .name=listing,.name_capacity=sizeof(listing)};
-        CHECK(core->stat(mounted,"/",&entry)==IFS_FS_UNSUPPORTED);
+        char name[32];
+        IfsFsEntryV2 entry={.structure_bytes=sizeof(entry),.name=name,.name_capacity=sizeof(name)};
+        CHECK(core->stat(mounted,"/kernel.img",&entry)==IFS_FS_OK && entry.size_bytes==1024);
     }
     CHECK(core->unmount(mounted)==IFS_FS_OK);
     host.logical_sector_bytes=512u;

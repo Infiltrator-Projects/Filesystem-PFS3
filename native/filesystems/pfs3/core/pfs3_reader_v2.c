@@ -10,13 +10,13 @@
 #include <stddef.h>
 #include <string.h>
 
-enum { BLOCK_BYTES=512u, ROOT_POS=1024u, ROOT_ANODE=5u,
+enum { ROOT_ANODE=5u,
        INDEX_ID=0x4942u, INDEX_COUNT=99u, MAX_CHAIN=1048576u };
 typedef struct {
     const IfsFsHostRuntimeV2 *host;
     IfsPfs3RootRecord root;
     uint32_t index[INDEX_COUNT];
-    uint32_t media_sectors, reserved_sectors;
+    uint32_t media_sectors, sector_bytes, reserved_sectors;
     uint16_t max_name;
 } Reader;
 typedef struct {
@@ -49,31 +49,48 @@ static int reserved(const Reader *r,uint32_t sector)
 static int reserved_read(const Reader *r,uint32_t sector,unsigned char *out)
 {
     if (!reserved(r,sector))return IFS_FS_CORRUPT;
-    return rd(r,(uint64_t)sector*BLOCK_BYTES,out,r->root.reserved_block_size);
+    return rd(r,(uint64_t)sector*r->sector_bytes,out,r->root.reserved_block_size);
+}
+/* PFS places its root at logical disk block two. The partition block size
+ * and the host BlockIo transfer size are independent. An identified PFS
+ * root with invalid geometry is corruption, including a stale size field. */
+int ifs_pfs3_v2_read_root(const IfsFsHostRuntimeV2 *host,uint8_t raw[512],
+                          IfsPfs3RootRecord *root,uint32_t *sector_bytes,
+                          uint32_t *media_sectors)
+{
+    if (!ifs_fs_host_v2_valid(host) || !raw || !root || !sector_bytes || !media_sectors)
+        return IFS_FS_INVALID;
+    for (uint32_t block=512;block<=4096;block*=2) {
+        uint64_t at=(uint64_t)block*2u;
+        if (at+512>host->volume_bytes) break;
+        int rc=ifs_fs_host_read_bytes_v2(host,at,raw,512);
+        if (rc) return rc;
+        if (ifs_pfs3_classify_disk_type(be32(raw))==IFS_PFS3_FORMAT_INVALID) continue;
+        uint64_t count=host->volume_bytes/block;
+        if (count>UINT32_MAX) return IFS_FS_UNSUPPORTED;
+        if (host->volume_bytes%block || ifs_pfs3_decode_root(raw,512,root) ||
+            ifs_pfs3_validate_root_record(root,block,(uint32_t)count)!=IFS_PFS3_MEDIA_OK ||
+            root->blocks_free>count) return IFS_FS_CORRUPT;
+        *sector_bytes=block;
+        *media_sectors=(uint32_t)count;
+        return IFS_FS_OK;
+    }
+    return IFS_FS_NOT_FOUND;
 }
 static int start(const IfsFsHostRuntimeV2 *host,Reader *r)
 {
-    unsigned char root[BLOCK_BYTES];
+    unsigned char root[512];
     if (!r || !ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
     if (!(host->capabilities&IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
-    if (host->volume_bytes<4096u ||
-        host->volume_bytes/BLOCK_BYTES>UINT32_MAX)return IFS_FS_UNSUPPORTED;
     memset(r,0,sizeof(*r));
     r->host=host;
-    r->media_sectors=(uint32_t)(host->volume_bytes/BLOCK_BYTES);
-    int rc=rd(r,ROOT_POS,root,sizeof(root));
-    if (rc!=IFS_FS_OK)return rc;
-    if (ifs_pfs3_decode_root(root,sizeof(root),&r->root))
-        return IFS_FS_CORRUPT;
-    if (ifs_pfs3_classify_disk_type(r->root.disk_type)==IFS_PFS3_FORMAT_INVALID)
-        return IFS_FS_NOT_FOUND;
-    if (ifs_pfs3_validate_root_record(&r->root,BLOCK_BYTES,r->media_sectors)
-        !=IFS_PFS3_MEDIA_OK)return IFS_FS_CORRUPT;
+    int rc=ifs_pfs3_v2_read_root(host,root,&r->root,&r->sector_bytes,&r->media_sectors);
+    if (rc) return rc;
     if (!(r->root.options&IFS_PFS3_MODE_HARDDISK) ||
         r->root.options&(IFS_PFS3_MODE_SUPERINDEX|
                          IFS_PFS3_MODE_LARGEFILE))
         return IFS_FS_UNSUPPORTED;
-    r->reserved_sectors=r->root.reserved_block_size/BLOCK_BYTES;
+    r->reserved_sectors=r->root.reserved_block_size/r->sector_bytes;
     if (!r->reserved_sectors)return IFS_FS_CORRUPT;
     r->max_name=IFS_PFS3_DEFAULT_FILENAME_SIZE;
     for (uint32_t i=0u;i<INDEX_COUNT;++i) {
@@ -302,8 +319,8 @@ int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
         return IFS_FS_INVALID;
     if(!count)return IFS_FS_OK;
     uint32_t current=found.anode,guard=0u;
-    uint64_t skip=offset/BLOCK_BYTES;
-    uint32_t inside=(uint32_t)(offset%BLOCK_BYTES);
+    uint64_t skip=offset/r.sector_bytes;
+    uint32_t inside=(uint32_t)(offset%r.sector_bytes);
     unsigned char *out=destination;
     while(current && count) {
         IfsPfs3AnodeRecord node;
@@ -317,9 +334,9 @@ int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
             skip-=node.cluster_size;current=node.next_anode;continue;
         }
         for(uint64_t i=skip;i<node.cluster_size && count;++i) {
-            uint32_t n=BLOCK_BYTES-inside;
+            uint32_t n=r.sector_bytes-inside;
             if(n>count)n=count;
-            rc=rd(&r,((uint64_t)node.block_number+i)*BLOCK_BYTES+inside,out,n);
+            rc=rd(&r,((uint64_t)node.block_number+i)*r.sector_bytes+inside,out,n);
             if(rc!=IFS_FS_OK)return rc;
             out+=n;count-=n;inside=0u;
         }

@@ -9,12 +9,14 @@ permissions:
   contents: read
 jobs:
   qualify:
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Install native toolchain
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential binutils cmake git pkg-config libssl-dev libsqlite3-dev dpkg-dev
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential binutils cmake git pkg-config libssl-dev libsqlite3-dev dpkg-dev cpio busybox-static curl unzip
       - name: Qualify portable source-owned V2 ELF
         run: |
           set -euo pipefail
@@ -45,6 +47,47 @@ jobs:
           set -euo pipefail
           bash tests/check-freestanding-v2.sh "$RUNNER_TEMP/portable/System/Filesystems/PFS3.so"
           bash tests/check-freestanding-v2.sh "$RUNNER_TEMP/root/System/Filesystems/PFS3.so"
+      - name: Read independently formatted PFS boot media through both packages
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/pfs-test"
+          mkdir -p "$work/files/boot"
+          bash tests/boot-file-fixtures.sh "$work/files/boot"
+          bash tests/independent-image.sh "$work/tools" "$work/files/boot" "$work/pfs.img"
+          git clone -q https://github.com/Infiltrator-Projects/Libraries "$work/common"
+          git -C "$work/common" checkout -q d23a52693fd3212368d327e1c1302e07ae9510ec
+          cc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -I"$work/common/include" tests/test_namespace_media.c -ldl -o "$work/read"
+          for profile in portable root; do
+            bash tests/packaged-media.sh "$work/read" "$RUNNER_TEMP/$profile/System/Filesystems/PFS3.so" "$work/pfs.img" "$work/files"
+          done
+      - name: Determine whether the version needs publishing
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="v$(cat VERSION)"
+          existing=$(git ls-remote --tags --refs origin "refs/tags/$tag")
+          if [[ -n "$existing" ]]; then
+            test "$(gh release view "$tag" --json tagName --jq .tagName)" = "$tag"
+            echo "new_version=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_version=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Qualify the new version through rebuilt BOOT in OVMF
+        if: steps.version.outputs.new_version == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          source tests/require-rebuilt-boot.sh
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf dosfstools gdisk mtools python3-virt-firmware
+          work="$RUNNER_TEMP/pfs-test"
+          for profile in portable root; do
+            module="$RUNNER_TEMP/$profile/System/Filesystems/PFS3.so"
+            "$IFS_BOOT_VALIDATOR" "$module"
+            bash tests/firmware-pfs3.sh "$IFS_BOOT_EFI" "$module" "$work/files/boot/vmlinuz" "$work/tools" "$work/ovmf-$profile"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: pfs3-common-v2-qualified-${{ github.sha }}
@@ -52,7 +95,7 @@ jobs:
           if-no-files-found: error
   publish:
     needs: qualify
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: needs.qualify.outputs.new_version == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:

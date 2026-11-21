@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  * Strict Common V2 PFS1/PFS2 read-only probe, mount and volume query.
  * PFS1 and PFS2 are on-media variants, never ABI generations.
- * On-disk metadata comes from the same canonical PFS3 core as pfs3.ko.
+ * On-disk metadata and file reads share the native hosted and firmware core.
  * Defragmentation, writes and repair are not yet qualified V2 services.
  */
 #include <infiltratr/filesystem_module_v2.h>
@@ -10,6 +10,7 @@
 #include "pfs3_reader_v2.h"
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stddef.h>
 
 static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
@@ -18,27 +19,13 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     unsigned char raw[512];
     IfsPfs3RootRecord root;
     IfsPfs3Format kind;
-    uint64_t count;
+    uint32_t count, sector_bytes;
     if(!variant)return IFS_FS_INVALID;
     *variant=0u;
     if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
-    if(host->volume_bytes<1536u)return IFS_FS_NOT_FOUND;
-    {
-        /* Partition-relative PFS3 roots begin at byte 1024 even on 4Kn. */
-        int rc=ifs_fs_host_read_bytes_v2(host,1024u,raw,
-                                        (uint32_t)sizeof(raw));
-        if(rc!=IFS_FS_OK)return rc;
-    }
-    if(ifs_pfs3_decode_root(raw,sizeof(raw),&root)!=0)
-        return IFS_FS_CORRUPT;
+    int rc=ifs_pfs3_v2_read_root(host,raw,&root,&sector_bytes,&count);
+    if (rc) return rc;
     kind=ifs_pfs3_classify_disk_type(root.disk_type);
-    if(kind==IFS_PFS3_FORMAT_INVALID)return IFS_FS_NOT_FOUND;
-    count=host->volume_bytes/host->logical_sector_bytes;
-    if(count>UINT32_MAX)return IFS_FS_UNSUPPORTED;
-    if(ifs_pfs3_validate_root_record(&root,host->logical_sector_bytes,
-                                    (uint32_t)count)!=IFS_PFS3_MEDIA_OK ||
-       root.blocks_free>count)
-        return IFS_FS_CORRUPT;
     /* The optional PFS root extension is real on-media metadata. Reject
      * damaged extension blocks and outstanding deferred operations before
      * declaring the volume safe for a read-only V2 session. */
@@ -47,15 +34,15 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
         unsigned char extension_bytes[IFS_PFS3_EXTENSION_MIN_BYTES];
         IfsPfs3ExtensionRecord ext;
         if (root.extension >= count ||
-            (uint64_t)root.extension > UINT64_MAX / host->logical_sector_bytes)
+            (uint64_t)root.extension > UINT64_MAX / sector_bytes)
             return IFS_FS_CORRUPT;
         const uint64_t offset=(uint64_t)root.extension*
-                              host->logical_sector_bytes;
+                              sector_bytes;
         int rc=ifs_fs_host_read_bytes_v2(host,offset,extension_bytes,
                                          (uint32_t)sizeof(extension_bytes));
         if (rc!=IFS_FS_OK) return rc;
         const uint32_t sectors_per_reserved=
-            root.reserved_block_size/host->logical_sector_bytes;
+            root.reserved_block_size/sector_bytes;
         const uint32_t reserved=
             (root.last_reserved-root.first_reserved+1u)/sectors_per_reserved;
         uint16_t max_name=0u;
@@ -73,10 +60,10 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
         info->variant=*variant;
         info->max_name_bytes=(root.options & IFS_PFS3_MODE_LONGFN)?
             filename_bytes:IFS_PFS3_DEFAULT_FILENAME_SIZE;
-        info->block_bytes=host->logical_sector_bytes;
-        info->total_bytes=count*host->logical_sector_bytes;
+        info->block_bytes=sector_bytes;
+        info->total_bytes=(uint64_t)count*sector_bytes;
         info->free_bytes=(uint64_t)root.blocks_free*
-                         host->logical_sector_bytes;
+                         sector_bytes;
     }
     return IFS_FS_OK;
 }
@@ -90,18 +77,35 @@ static int probe(const IfsFsHostRuntimeV2 *host,uint32_t *variant)
 static IfsFsReadOnlySessionsV2 sessions = IFS_FS_RO_SESSIONS_INIT_V2;
 /* Associate the opaque Common V2 cookie with a size-versioned host snapshot.
  * The existing Common registry owns lifecycle and rejects stale cookies. */
-static struct {
+typedef struct {
     uintptr_t cookie;
+    unsigned active;
     IfsFsHostRuntimeV2 host;
-} readers[IFS_FS_RO_MAX_SESSIONS_V2];
-static const IfsFsHostRuntimeV2 *reader_host(void *volume)
+} PfsSession;
+static PfsSession readers[IFS_FS_RO_MAX_SESSIONS_V2];
+
+static PfsSession *acquire(void *volume)
 {
     uintptr_t token=(uintptr_t)volume;
+    PfsSession *result=NULL;
     if (!token) return NULL;
-    for (uint32_t i=0u;i<IFS_FS_RO_MAX_SESSIONS_V2;++i)
-        if (readers[i].cookie==token &&
-            sessions.slots[i].cookie==token) return &readers[i].host;
-    return NULL;
+    ifs_fs_ro_sessions_lock_v2(&sessions);
+    for (unsigned i=0;i<IFS_FS_RO_MAX_SESSIONS_V2;++i) {
+        if (readers[i].cookie==token && readers[i].active!=UINT_MAX) {
+            ++readers[i].active;
+            result=&readers[i];
+            break;
+        }
+    }
+    ifs_fs_ro_sessions_unlock_v2(&sessions);
+    return result;
+}
+static int finish(PfsSession *s,int rc)
+{
+    ifs_fs_ro_sessions_lock_v2(&sessions);
+    --s->active;
+    ifs_fs_ro_sessions_unlock_v2(&sessions);
+    return rc;
 }
 static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
                         IfsFsVolumeInfoV2 *info)
@@ -116,24 +120,21 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
     if (!(host->capabilities & IFS_FS_HOST_READ_ONLY)) return IFS_FS_ACCESS;
     rc=examine(host,&variant,&measured);
     if (rc!=IFS_FS_OK) return rc;
-    /* Qualified direct-index volumes must have real root anodes and
-     * directory data, not just a plausible PFS superblock signature.
-     * Larger host sectors retain hosted metadata-only access. */
-    if (host->logical_sector_bytes==512u) {
-        rc=ifs_pfs3_v2_reader_validate(host);
-        if (rc!=IFS_FS_OK)return rc;
-    }
-    rc=ifs_fs_ro_session_open_v2(&sessions,&measured,volume,info);
+    rc=ifs_pfs3_v2_reader_validate(host);
+    if (rc!=IFS_FS_OK) return rc;
+    void *token=NULL;
+    rc=ifs_fs_ro_session_open_v2(&sessions,&measured,&token,info);
     if (rc!=IFS_FS_OK)return rc;
     ifs_fs_ro_sessions_lock_v2(&sessions);
     for (uint32_t i=0u;i<IFS_FS_RO_MAX_SESSIONS_V2;++i) {
-        if (sessions.slots[i].cookie==(uintptr_t)*volume) {
+        if (sessions.slots[i].cookie==(uintptr_t)token) {
             size_t bytes=host->structure_bytes<sizeof(readers[i].host)?
                          host->structure_bytes:sizeof(readers[i].host);
             memset(&readers[i].host,0,sizeof(readers[i].host));
             memcpy(&readers[i].host,host,bytes);
             readers[i].host.structure_bytes=(uint32_t)bytes;
-            readers[i].cookie=(uintptr_t)*volume;
+            readers[i].cookie=(uintptr_t)token;
+            *volume=token;
             break;
         }
     }
@@ -142,17 +143,21 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
 }
 static int unmount_volume(void *volume)
 {
-    int rc=ifs_fs_ro_session_close_v2(&sessions,volume);
-    if (rc!=IFS_FS_OK)return rc;
+    if (!volume) return IFS_FS_INVALID;
+    int rc=IFS_FS_INVALID;
     ifs_fs_ro_sessions_lock_v2(&sessions);
-    for (uint32_t i=0u;i<IFS_FS_RO_MAX_SESSIONS_V2;++i)
-        if (readers[i].cookie==(uintptr_t)volume) {
-            readers[i].cookie=0u;
-            memset(&readers[i].host,0,sizeof(readers[i].host));
-            break;
+    for (unsigned i=0;i<IFS_FS_RO_MAX_SESSIONS_V2;++i) {
+        if (readers[i].cookie!=(uintptr_t)volume) continue;
+        if (readers[i].active) rc=IFS_FS_BUSY;
+        else {
+            sessions.slots[i]=(IfsFsReadOnlySessionSlotV2){0};
+            readers[i]=(PfsSession){0};
+            rc=IFS_FS_OK;
         }
+        break;
+    }
     ifs_fs_ro_sessions_unlock_v2(&sessions);
-    return IFS_FS_OK;
+    return rc;
 }
 static int query_volume(void *volume,IfsFsVolumeInfoV2 *info)
 {
@@ -160,26 +165,20 @@ static int query_volume(void *volume,IfsFsVolumeInfoV2 *info)
 }
 static int stat_path(void *volume,const char *path,IfsFsEntryV2 *entry)
 {
-    const IfsFsHostRuntimeV2 *host=reader_host(volume);
-    if (!host)return IFS_FS_INVALID;
-    if (host->logical_sector_bytes!=512u)return IFS_FS_UNSUPPORTED;
-    return ifs_pfs3_v2_reader_stat(host,path,entry);
+    PfsSession *session=acquire(volume);
+    return session?finish(session,ifs_pfs3_v2_reader_stat(&session->host,path,entry)):IFS_FS_INVALID;
 }
 static int list_path(void *volume,const char *path,uint32_t index,
                      IfsFsEntryV2 *entry)
 {
-    const IfsFsHostRuntimeV2 *host=reader_host(volume);
-    if (!host)return IFS_FS_INVALID;
-    if (host->logical_sector_bytes!=512u)return IFS_FS_UNSUPPORTED;
-    return ifs_pfs3_v2_reader_list(host,path,index,entry);
+    PfsSession *session=acquire(volume);
+    return session?finish(session,ifs_pfs3_v2_reader_list(&session->host,path,index,entry)):IFS_FS_INVALID;
 }
 static int read_file(void *volume,const char *path,uint64_t offset,
                      void *out,uint32_t length)
 {
-    const IfsFsHostRuntimeV2 *host=reader_host(volume);
-    if (!host)return IFS_FS_INVALID;
-    if (host->logical_sector_bytes!=512u)return IFS_FS_UNSUPPORTED;
-    return ifs_pfs3_v2_reader_read(host,path,offset,out,length);
+    PfsSession *session=acquire(volume);
+    return session?finish(session,ifs_pfs3_v2_reader_read(&session->host,path,offset,out,length)):IFS_FS_INVALID;
 }
 static const IfsFsCoreOpsV2 core={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsCoreOpsV2),

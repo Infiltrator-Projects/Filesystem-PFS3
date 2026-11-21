@@ -4,6 +4,10 @@
 #ifndef IFS_PFS3_READER_V2_H
 #define IFS_PFS3_READER_V2_H
 #include <infiltratr/filesystem_module_v2.h>
+#include "pfs3_core.h"
+int ifs_pfs3_v2_read_root(const IfsFsHostRuntimeV2 *host, uint8_t raw[512],
+                          IfsPfs3RootRecord *root, uint32_t *sector_bytes,
+                          uint32_t *media_sectors);
 int ifs_pfs3_v2_reader_validate(const IfsFsHostRuntimeV2 *host);
 int ifs_pfs3_v2_reader_stat(const IfsFsHostRuntimeV2 *host,
                             const char *path, IfsFsEntryV2 *entry);
