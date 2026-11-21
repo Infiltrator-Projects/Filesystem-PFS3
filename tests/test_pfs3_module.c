@@ -63,6 +63,12 @@ int main(void){
     host.read_at=rd;host.allocate=alloc;host.release=release;
     CHECK(ifs_fs_host_v2_valid(&host));
     uint32_t variant=99u;
+    {
+        IfsFsHostRuntimeV2 invalid_host=host;
+        invalid_host.abi_version=1u;
+        CHECK(core->probe(&invalid_host,&variant)==IFS_FS_INVALID && variant==0u);
+    }
+    variant=99u;
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND && variant==0u);
     const unsigned off=1024u;
     be32(off,0x50465302u); /* real on-disk PFS2 family identifier */
