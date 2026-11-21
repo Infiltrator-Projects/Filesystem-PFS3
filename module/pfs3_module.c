@@ -19,9 +19,9 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     IfsPfs3RootRecord root;
     IfsPfs3Format kind;
     uint64_t count;
-    if(!variant || !ifs_fs_host_v2_valid(host))
-        return IFS_FS_INVALID;
+    if(!variant)return IFS_FS_INVALID;
     *variant=0u;
+    if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
     if(host->volume_bytes<1536u)return IFS_FS_NOT_FOUND;
     {
         /* Partition-relative PFS3 roots begin at byte 1024 even on 4Kn. */
