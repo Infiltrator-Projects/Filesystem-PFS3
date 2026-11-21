@@ -75,7 +75,7 @@ jobs:
             echo "new_version=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Qualify the new version through rebuilt BOOT in OVMF
-        if: steps.version.outputs.new_version == 'true'
+        if: steps.version.outputs.new_version == 'true' && vars.IFS_BOOT_INTEGRATION_READY == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -95,7 +95,7 @@ jobs:
           if-no-files-found: error
   publish:
     needs: qualify
-    if: needs.qualify.outputs.new_version == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: vars.IFS_BOOT_INTEGRATION_READY == 'true' && needs.qualify.outputs.new_version == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
