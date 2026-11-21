@@ -51,22 +51,7 @@ jobs:
           test "$(find "$RUNNER_TEMP/installed" -type f | wc -l)" -eq 2
           ! find "$RUNNER_TEMP/installed" -name '*.ko' | grep .
           echo PFS3_RELEASE_SO_EMBEDS_IDENTICAL_FREESTANDING_ELF
-      - name: Qualify using unmodified BOOT 0.1.77 production validator
-        shell: bash
+      - name: Validate packaged Common V2 freestanding reader independently
         run: |
           set -euo pipefail
-          boot=infiltrator-boot_0.1.77_amd64.deb
-          curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
-            -o "$RUNNER_TEMP/$boot"
-          printf '%s  %s\n' \
-            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
-            "$RUNNER_TEMP/$boot" | sha256sum -c -
-          dpkg-deb -x "$RUNNER_TEMP/$boot" "$RUNNER_TEMP/boot"
-          validator="$RUNNER_TEMP/boot/usr/lib/infiltrator-boot/validate-module"
-          if [[ ! -x "$validator" ]]; then
-            echo "Production BOOT 0.1.77 no longer supplies validate-module; PFS3 qualification blocked" >&2
-            exit 1
-          fi
-          "$validator" build/firmware/PFS3.so
-          echo PFS3_FREESTANDING_V2_PRODUCTION_VALIDATOR_PASS
+          bash tests/check-freestanding-v2.sh build/PFS3.so

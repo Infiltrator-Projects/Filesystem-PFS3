@@ -4,7 +4,6 @@ file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" FILESYSTEM_VERSION LIMIT_COUN
 project(FilesystemPFS3 VERSION ${FILESYSTEM_VERSION} LANGUAGES C)
 include(CTest)
 include(FetchContent)
-find_package(OpenSSL REQUIRED)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -68,33 +67,6 @@ add_custom_command(TARGET pfs3-driver POST_BUILD
 
 
 if(BUILD_TESTING)
-  # Keep the historical worker/fixture code for independent regression only;
-  # no legacy V1 ABI is installed with the production PFS3.so.
-  add_library(pfs3-historical-test-support SHARED
-    native/pfs3_native.c
-    native/pfs3_worker.c
-    module/pfs3_module.c
-    compat/legacy_services.c
-    native/filesystems/pfs3/core/pfs3_core.c
-    fixtures/pfs3_codec.c
-    compat/fixture_bridge.c)
-  set_source_files_properties(native/pfs3_worker.c PROPERTIES
-    COMPILE_DEFINITIONS "main=ifs_pfs3_worker_main")
-  target_compile_definitions(pfs3-historical-test-support PRIVATE
-    _GNU_SOURCE _FILE_OFFSET_BITS=64)
-  target_compile_options(pfs3-historical-test-support PRIVATE
-    -Wall -Wextra -Wpedantic -Werror)
-  target_include_directories(pfs3-historical-test-support PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/native"
-    "${CMAKE_CURRENT_SOURCE_DIR}/compat"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/include"
-    "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/native/filesystems/pfs3/core"
-    "${infiltratr_common_SOURCE_DIR}/include")
-  target_link_libraries(pfs3-historical-test-support PRIVATE
-    InfiltratrCommon::Common OpenSSL::Crypto)
-
   add_executable(pfs3-module-test tests/test_pfs3_module.c)
   target_include_directories(pfs3-module-test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/native/filesystems/pfs3/core"

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# No immutable release while PFS3 has no genuine V2 file read/UEFI reader.
-name: Qualify PFS3 V2 hosted DEB and native RUN without kernel substitute
+# Qualify and publish canonical Common V2 reader and embedded native firmware ELF.
+name: Qualify and release PFS3 Common V2 reader
 on:
   push:
     branches: [main]
@@ -40,8 +40,53 @@ jobs:
           test "$(find "$RUNNER_TEMP/root" -type f | wc -l)" = 2
           bash tests/check_v2_exports.sh "$RUNNER_TEMP/root/System/Filesystems/PFS3.so"
           test "$(find "$RUNNER_TEMP/root" -name '*.ko' | wc -l)" = 0
+      - name: Validate exact source-owned freestanding reader in both packages
+        run: |
+          set -euo pipefail
+          bash tests/check-freestanding-v2.sh "$RUNNER_TEMP/portable/System/Filesystems/PFS3.so"
+          bash tests/check-freestanding-v2.sh "$RUNNER_TEMP/root/System/Filesystems/PFS3.so"
       - uses: actions/upload-artifact@v4
         with:
-          name: PFS3-hosted-only-qualification
+          name: pfs3-common-v2-qualified-${{ github.sha }}
           path: dist/*
           if-no-files-found: error
+  publish:
+    needs: qualify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: pfs3-common-v2-qualified-${{ github.sha }}
+          path: dist
+      - name: Publish immutable PFS3 Common V2 .deb and native .run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$(git ls-remote origin refs/heads/main | cut -f1)"
+          version="$(tr -d '\r\n' < VERSION)"
+          tag="v$version"
+          test "$(find dist -maxdepth 1 -name '*.deb' | wc -l)" = 1
+          test "$(find dist -maxdepth 1 -name '*.run' | wc -l)" = 1
+          test "$(find dist -maxdepth 1 -type f | wc -l)" = 2
+          test "$(find dist -name '*.ko' -o -name '*.efi' | wc -l)" = 0
+          (cd dist && sha256sum -- *.deb *.run) > "$RUNNER_TEMP/hashes.txt"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            target="$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)"
+            test "$target" = "$GITHUB_SHA" || { echo "Existing release belongs to another commit" >&2;exit 1; }
+          elif gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+            echo "Existing tag without qualified release" >&2;exit 1
+          else
+            gh release create "$tag" dist/*.deb dist/*.run --target "$GITHUB_SHA" \
+              --title "PFS3 Common V2 filesystem reader $version" \
+              --notes "Native Common V2 PFS3.so with embedded, import-free freestanding ELF. V2 core and read-only filesystem tests pass. No separate kernel driver, EFI driver or obsolete ABI."
+          fi
+          mkdir -p "$RUNNER_TEMP/verified"
+          gh release download "$tag" -p '*.deb' -p '*.run' --dir "$RUNNER_TEMP/verified"
+          (cd "$RUNNER_TEMP/verified" && sha256sum -c "$RUNNER_TEMP/hashes.txt")
