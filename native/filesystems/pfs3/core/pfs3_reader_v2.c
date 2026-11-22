@@ -162,9 +162,12 @@ static int equal(const char *a,size_t n,const char *b,size_t m)
 static int lookup(const Reader *r,uint32_t directory,
                   const char *name,size_t name_len,uint32_t index,File *found)
 {
+    if(!r || !found)return IFS_FS_INVALID;
     unsigned char block[4096];
     uint32_t current=directory,guard=0u;
     uint64_t ordinal=0u;
+    File matched={0};
+    int have_match=0;
     while(current) {
         IfsPfs3AnodeRecord node;
         if(++guard>MAX_CHAIN)return IFS_FS_CORRUPT;
@@ -199,19 +202,28 @@ static int lookup(const Reader *r,uint32_t directory,
                     if((unsigned char)disk[k]>=128u)return IFS_FS_UNSUPPORTED;
                 if((name && equal(name,name_len,disk,e.name_length)) ||
                    (!name && ordinal==index)) {
-                    found->anode=e.anode;
-                    found->bytes=e.file_size_low;
-                    found->type=e.type;
-                    found->name_length=e.name_length;
-                    memcpy(found->name,disk,e.name_length);
-                    found->name[e.name_length]='\0';
-                    return IFS_FS_OK;
+                    File *destination=name?&matched:found;
+                    if(name && have_match)return IFS_FS_CORRUPT;
+                    destination->anode=e.anode;
+                    destination->bytes=e.file_size_low;
+                    destination->type=e.type;
+                    destination->name_length=e.name_length;
+                    memcpy(destination->name,disk,e.name_length);
+                    destination->name[e.name_length]='\0';
+                    if(!name)return IFS_FS_OK;
+                    have_match=1;
+                    /* Continue through every directory cluster and anode.
+                     * Identical case-folded names invalidate path lookup. */
                 }
                 ++ordinal;
                 off+=e.record_bytes;
             }
         }
         current=node.next_anode;
+    }
+    if(name && have_match) {
+        *found=matched;
+        return IFS_FS_OK;
     }
     return name?IFS_FS_NOT_FOUND:IFS_FS_END;
 }
