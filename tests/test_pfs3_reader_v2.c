@@ -130,6 +130,31 @@ int main(void)
     CHECK(ifs_pfs3_v2_reader_stat(&host,"/../kernel.img",&entry)==IFS_FS_INVALID);
     CHECK(memcmp(disk,before,MEDIA)==0);
 
+    /* A native PFS3 catalogue can contain two individually valid directory
+     * entries with the same case-folded name. They must not be interpreted
+     * as the first record encountered by V2 STAT or READ. */
+    {
+        const unsigned dir=8u*SECTOR;
+        const unsigned first=dir+IFS_PFS3_DIRBLOCK_HEADER_BYTES;
+        const unsigned duplicate=first+30u;
+        disk[duplicate]=30u;
+        disk[duplicate+1u]=(uint8_t)-3;
+        be32(duplicate+2u,6u);
+        be32(duplicate+6u,FILE_BYTES);
+        disk[duplicate+17u]=10u;
+        memcpy(disk+duplicate+IFS_PFS3_DIRENTRY_NAME_OFFSET,
+               "KERNEL.IMG",10u);
+        disk[duplicate+30u]=0u;
+        CHECK(ifs_pfs3_v2_reader_stat(&host,"/kernel.img",&entry)
+              ==IFS_FS_CORRUPT);
+        CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,1u)
+              ==IFS_FS_CORRUPT);
+        memcpy(disk+duplicate,before+duplicate,31u);
+        CHECK(ifs_pfs3_v2_reader_stat(&host,"/kernel.img",&entry)
+              ==IFS_FS_OK);
+        CHECK(memcmp(disk,before,MEDIA)==0);
+    }
+
     /* An on-disk anode index with the wrong PFS3 format marker is corruption,
      * not an empty directory or a successful no-op file read. */
     be16(4u*SECTOR,0x0000u);
