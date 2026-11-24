@@ -67,6 +67,11 @@ add_custom_command(TARGET pfs3-driver POST_BUILD
 
 
 if(BUILD_TESTING)
+  add_executable(pfs3-native-format-test tests/test_format.c)
+  target_link_libraries(pfs3-native-format-test PRIVATE InfiltratrCommon::Common ${CMAKE_DL_LIBS})
+  target_compile_options(pfs3-native-format-test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME pfs3-native-format COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tests/format_media.sh"
+    "$<TARGET_FILE:pfs3-native-format-test>" "$<TARGET_FILE:pfs3-driver>")
   add_executable(pfs3-module-test tests/test_pfs3_module.c)
   target_include_directories(pfs3-module-test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/native/filesystems/pfs3/core"

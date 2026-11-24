@@ -60,6 +60,14 @@ jobs:
           for profile in portable root; do
             bash tests/packaged-media.sh "$work/read" "$RUNNER_TEMP/$profile/System/Filesystems/PFS3.so" "$work/pfs.img" "$work/files"
           done
+      - name: Verify new PFS1 media through both packaged formatters
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/pfs-test"
+          cc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -I"$work/common/include" tests/test_format.c -ldl -o "$work/format"
+          for profile in portable root; do
+            sh tests/format_media.sh "$work/format" "$RUNNER_TEMP/$profile/System/Filesystems/PFS3.so"
+          done
       - name: Determine whether the version needs publishing
         id: version
         env:
