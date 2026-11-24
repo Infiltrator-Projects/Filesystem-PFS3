@@ -401,14 +401,49 @@ static const IfsFsCoreOpsV2 core={
     .probe=probe,.mount=mount_volume,.unmount=unmount_volume,
     .stat=stat_path,.directory_entry=list_path,.read=read_file
 };
+/* Read the native root record through the same bounded validation used
+ * for the namespace. Amiga disk names use single-byte Latin-1 characters;
+ * convert to UTF-8 only after proving the complete output fits. */
+static int volume_label(void *volume,char *out,uint32_t capacity,uint32_t *bytes)
+{
+    if(!bytes)return IFS_FS_INVALID;
+    *bytes=0u;
+    if(!out || !capacity)return IFS_FS_INVALID;
+    PfsSession *session=acquire(volume);
+    if(!session)return IFS_FS_INVALID;
+    uint8_t raw[512];
+    IfsPfs3RootRecord root;
+    uint32_t sector,count;
+    int rc=ifs_pfs3_v2_read_root(&session->host,raw,&root,&sector,&count);
+    if(rc!=IFS_FS_OK)return finish(session,rc);
+    uint32_t n=raw[20],required=0u;
+    if(n>IFS_PFS3_MAX_DISK_NAME)return finish(session,IFS_FS_CORRUPT);
+    for(uint32_t i=0;i<n;++i) {
+        uint8_t c=raw[21u+i];
+        if(c<32u || c==127u)return finish(session,IFS_FS_CORRUPT);
+        required+=c<128u?1u:2u;
+    }
+    if(required>=capacity)return finish(session,IFS_FS_NO_SPACE);
+    uint32_t used=0u;
+    for(uint32_t i=0;i<n;++i) {
+        uint8_t c=raw[21u+i];
+        if(c<128u)out[used++]=(char)c;
+        else {
+            out[used++]=(char)(0xc0u|(c>>6));
+            out[used++]=(char)(0x80u|(c&0x3fu));
+        }
+    }
+    out[used]=0;*bytes=used;
+    return finish(session,IFS_FS_OK);
+}
 static const IfsFsVolumeOpsV2 volume_ops={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsVolumeOpsV2),
-             IFS_FS_GROUP_VOLUME,0u,IFS_FS_VOLUME_QUERY
+             IFS_FS_GROUP_VOLUME,0u,IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_LABEL_GET
 #ifndef IFS_PFS3_FIRMWARE_BUILD
              |IFS_FS_VOLUME_FORMAT
 #endif
     },
-    .query=query_volume
+    .query=query_volume,.label=volume_label
 #ifndef IFS_PFS3_FIRMWARE_BUILD
     ,.format=format_volume
 #endif
