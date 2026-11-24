@@ -21,8 +21,17 @@ typedef struct {
     uint32_t sector;
     int fail;
 } Device;
+static const IfsFsCoreOpsV2 *unmount_during_read;
+static void *active_volume;
+static int observed_unmount;
 static int read_at(void *ctx, uint64_t at, void *out, uint32_t n)
 {
+    if (unmount_during_read) {
+        const IfsFsCoreOpsV2 *ops=unmount_during_read;
+        unmount_during_read=NULL;
+        observed_unmount=ops->unmount(active_volume);
+        if (observed_unmount!=IFS_FS_BUSY) return -1;
+    }
     Device *d = ctx;
     if (d->fail || at % d->sector || !n || n % d->sector || n > 16384)
         return -1;
@@ -134,8 +143,12 @@ int main(int argc, char **argv)
                 CHECK(0);
         }
         CHECK(seen == 3);
+        active_volume=mount;
+        unmount_during_read=core;
+        observed_unmount=IFS_FS_INVALID;
         CHECK(!check_file(core, mount, argv[3], "vmlinuz") &&
               !check_file(core, mount, argv[3], "initramfs"));
+        CHECK(!unmount_during_read && observed_unmount==IFS_FS_BUSY);
         strcpy(name, "sentinel");
         e.name_capacity = 2;
         CHECK(core->stat(mount, "/boot/vmlinuz", &e) == IFS_FS_NO_SPACE &&

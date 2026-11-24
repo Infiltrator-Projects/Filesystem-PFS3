@@ -91,7 +91,9 @@ static PfsSession *acquire(void *volume)
     if (!token) return NULL;
     ifs_fs_ro_sessions_lock_v2(&sessions);
     for (unsigned i=0;i<IFS_FS_RO_MAX_SESSIONS_V2;++i) {
-        if (readers[i].cookie==token && readers[i].active!=UINT_MAX) {
+        if (readers[i].cookie==token &&
+            sessions.slots[i].cookie==token &&
+            readers[i].active!=UINT_MAX) {
             ++readers[i].active;
             result=&readers[i];
             break;
@@ -139,6 +141,11 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
         }
     }
     ifs_fs_ro_sessions_unlock_v2(&sessions);
+    if (!*volume) {
+        /* Never publish success without the corresponding native reader. */
+        (void)ifs_fs_ro_session_close_v2(&sessions,token);
+        return IFS_FS_INVALID;
+    }
     return IFS_FS_OK;
 }
 static int unmount_volume(void *volume)
@@ -147,7 +154,8 @@ static int unmount_volume(void *volume)
     int rc=IFS_FS_INVALID;
     ifs_fs_ro_sessions_lock_v2(&sessions);
     for (unsigned i=0;i<IFS_FS_RO_MAX_SESSIONS_V2;++i) {
-        if (readers[i].cookie!=(uintptr_t)volume) continue;
+        if (readers[i].cookie!=(uintptr_t)volume ||
+            sessions.slots[i].cookie!=(uintptr_t)volume) continue;
         if (readers[i].active) rc=IFS_FS_BUSY;
         else {
             sessions.slots[i]=(IfsFsReadOnlySessionSlotV2){0};
