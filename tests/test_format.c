@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/random.h>
+#include <time.h>
 typedef struct {int fd;uint32_t sector;uint64_t bytes;unsigned writes;} Media;
 static int rd(void *ctx,uint64_t at,void *p,uint32_t n)
 {
@@ -30,6 +31,15 @@ static int entropy(void *ctx,void *p,uint32_t n)
 {(void)ctx;return getrandom(p,n,0)==(ssize_t)n?0:-1;}
 static uint32_t word(const unsigned char *p)
 {return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|((uint32_t)p[2]<<8)|p[3];}
+static uint64_t clock_ns(clockid_t id)
+{
+    struct timespec ts;
+    if(clock_gettime(id,&ts)!=0)return 0u;
+    return (uint64_t)ts.tv_sec*1000000000ull+(uint64_t)ts.tv_nsec;
+}
+static uint64_t real_ns(void *ctx){(void)ctx;return clock_ns(CLOCK_REALTIME);}
+static uint64_t mono_ns(void *ctx){(void)ctx;return clock_ns(CLOCK_MONOTONIC);}
+static int cancelled(void *ctx){(void)ctx;return 0;}
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"PFS3 format line %d: %s\n",__LINE__,#x);goto done;}}while(0)
 int main(int argc,char **argv)
 {
@@ -53,13 +63,17 @@ int main(int argc,char **argv)
     CHECK(ftruncate(m.fd,(off_t)m.bytes)==0);
     IfsFsHostRuntimeV2 h={
         .abi_version=IFS_FS_HOST_ABI_V2,.structure_bytes=sizeof(h),
-        .capabilities=IFS_FS_HOST_EXCLUSIVE|IFS_FS_HOST_DURABLE,
+        .capabilities=IFS_FS_HOST_EXCLUSIVE|IFS_FS_HOST_DURABLE|
+                      IFS_FS_HOST_CLOCK|IFS_FS_HOST_CANCEL,
         .volume_bytes=m.bytes,.logical_sector_bytes=m.sector,
         .physical_sector_bytes=m.sector,.maximum_transfer_bytes=m.sector,
         .context=&m,.read_at=rd,.write_at=wr,.flush=flush,
-        .allocate=allocate,.release=release,.random_bytes=entropy
+        .allocate=allocate,.release=release,.random_bytes=entropy,
+        .monotonic_ns=mono_ns,.realtime_ns=real_ns,.cancelled=cancelled
     },ro=h;
-    ro.capabilities=IFS_FS_HOST_READ_ONLY;ro.write_at=NULL;ro.flush=NULL;
+    ro.capabilities=IFS_FS_HOST_READ_ONLY|IFS_FS_HOST_CLOCK|IFS_FS_HOST_CANCEL;
+    ro.write_at=NULL;ro.flush=NULL;
+    CHECK(ifs_fs_host_v2_valid(&h) && ifs_fs_host_v2_valid(&ro));
     CHECK(vol->format(&ro,variant,"NativePFS",0u)==IFS_FS_ACCESS);
     CHECK(vol->format(&h,2u,"NativePFS",0u)==IFS_FS_UNSUPPORTED);
     CHECK(vol->format(&h,variant,"Invalid:Name",0u)==IFS_FS_INVALID);

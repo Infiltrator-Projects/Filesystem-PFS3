@@ -340,7 +340,12 @@ static int format_impl(const IfsFsHostRuntimeV2 *h,const char *label)
     IfsFsHostRuntimeV2 ro={0};
     const size_t n=h->structure_bytes<sizeof(ro)?h->structure_bytes:sizeof(ro);
     memcpy(&ro,h,n);ro.structure_bytes=(uint32_t)n;
-    ro.capabilities=IFS_FS_HOST_READ_ONLY;ro.write_at=NULL;ro.flush=NULL;
+    /* Preserve the optional read-side services and their capability bits.
+     * A copied CLOCK/CANCEL/LOG/LOCKS callback without its bit violates
+     * the Common host contract. Drop only write-side services. */
+    ro.capabilities=(h->capabilities & ~(IFS_FS_HOST_EXCLUSIVE |
+        IFS_FS_HOST_DURABLE | IFS_FS_HOST_DISCARD)) | IFS_FS_HOST_READ_ONLY;
+    ro.write_at=NULL;ro.flush=NULL;ro.discard=NULL;
     rc=ifs_pfs3_v2_reader_validate(&ro);
 done:
     h->release(h->context,root);return rc;
