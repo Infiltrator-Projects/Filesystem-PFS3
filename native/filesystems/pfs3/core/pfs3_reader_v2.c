@@ -387,3 +387,51 @@ int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
     }
     return count?IFS_FS_CORRUPT:IFS_FS_OK;
 }
+
+/* Map real PFS3 anodes through Common V2. Validate the complete chain
+ * before exposing a page, trim the final allocation to logical EOF, and
+ * never represent reserved metadata as file content. */
+int ifs_pfs3_v2_reader_map(const IfsFsHostRuntimeV2 *host,const char *path,
+                            uint64_t first,IfsFsExtentV2 *out,
+                            uint32_t capacity,uint32_t *written)
+{
+    if(!written)return IFS_FS_INVALID;
+    *written=0u;
+    if(!out || !capacity)return IFS_FS_INVALID;
+    Reader r;
+    File found;
+    int rc=start(host,&r);
+    if(rc!=IFS_FS_OK)return rc;
+    rc=resolve(&r,path,&found);
+    if(rc!=IFS_FS_OK)return rc;
+    if(found.type==2)return IFS_FS_INVALID;
+    if(found.type!=-3)return IFS_FS_UNSUPPORTED;
+    if(!found.bytes)return IFS_FS_END;
+    rc=validate_file_chain(&r,&found);
+    if(rc!=IFS_FS_OK)return rc;
+    uint64_t logical=0u,index=0u;
+    uint32_t current=found.anode,count=0u,guard=0u;
+    while(current && logical<found.bytes) {
+        IfsPfs3AnodeRecord node;
+        if(++guard>MAX_CHAIN)return IFS_FS_CORRUPT;
+        if(r.host->cancelled && r.host->cancelled(r.host->context))
+            return IFS_FS_BUSY;
+        rc=anode(&r,current,&node);
+        if(rc!=IFS_FS_OK)return rc;
+        if(!node.cluster_size || node.block_number<=r.root.last_reserved ||
+           ifs_pfs3_validate_anode_extent(&node,r.media_sectors))
+            return IFS_FS_CORRUPT;
+        uint64_t length=(uint64_t)node.cluster_size*r.sector_bytes;
+        if(length>found.bytes-logical)length=found.bytes-logical;
+        if(index>=first) {
+            out[count++]=(IfsFsExtentV2){logical,
+                (uint64_t)node.block_number*r.sector_bytes,length,0u,0u};
+            if(count==capacity)break;
+        }
+        logical+=length;
+        ++index;
+        current=node.next_anode;
+    }
+    *written=count;
+    return count?IFS_FS_OK:IFS_FS_END;
+}

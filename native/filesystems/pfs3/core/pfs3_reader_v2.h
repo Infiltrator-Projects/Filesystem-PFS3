@@ -17,4 +17,6 @@ int ifs_pfs3_v2_reader_list(const IfsFsHostRuntimeV2 *host,
 int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
                             const char *path, uint64_t offset,
                             void *destination, uint32_t count);
+int ifs_pfs3_v2_reader_map(const IfsFsHostRuntimeV2 *,const char *,uint64_t,
+                            IfsFsExtentV2 *,uint32_t,uint32_t *);
 #endif

@@ -49,7 +49,8 @@ int main(void){
     CHECK(ifs_fs_api_v2_valid(api,"pfs3"));
     CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
     CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
-                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)));
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_DEFRAG)));
     const IfsFsCoreOpsV2 *core=
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     const IfsFsVolumeOpsV2 *ops=
@@ -59,7 +60,10 @@ int main(void){
     CHECK(core->probe && core->mount && core->unmount && !core->write);
     CHECK(ops && ops->header.capabilities==(IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_FORMAT|IFS_FS_VOLUME_LABEL_GET) &&
           ops->query && ops->label && !ops->set_label && !ops->repair && ops->format);
-    CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
+    const IfsFsDefragOpsV2 *defrag=
+        (const IfsFsDefragOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG);
+    CHECK(defrag && defrag->header.capabilities==IFS_FS_DEFRAG_MAP &&
+          defrag->map && !defrag->plan && !defrag->execute);
     IfsFsHostRuntimeV2 host={0};
     host.abi_version=IFS_FS_HOST_ABI_V2;
     host.structure_bytes=sizeof(host);
@@ -190,6 +194,13 @@ int main(void){
         reentrant_core=core;
         reentrant_volume=mounted;
         CHECK(core->read(mounted,"/kernel.img",0u,data,1024u)==IFS_FS_OK);
+        {
+            IfsFsExtentV2 extent={0};
+            uint32_t count=99u;
+            CHECK(defrag->map(mounted,"/kernel.img",0u,&extent,1u,&count)==IFS_FS_OK &&
+                  count==1u && extent.logical_offset==0u && extent.length>0u);
+            CHECK(defrag->map(mounted,"/missing",0u,&extent,1u,&count)==IFS_FS_NOT_FOUND && !count);
+        }
         CHECK(!reentrant_volume && close_result==IFS_FS_BUSY);
         for (unsigned i=0u;i<1024u;++i)
             CHECK((unsigned char)data[i]==(unsigned char)((i*13u+31u)&255u));

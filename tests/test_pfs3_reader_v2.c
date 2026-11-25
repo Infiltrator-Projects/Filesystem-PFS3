@@ -184,7 +184,16 @@ int main(void)
     be32(second_anode+4u,24u);
     CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,FILE_BYTES)==IFS_FS_OK);
     CHECK(memcmp(out,expected,FILE_BYTES)==0);
+    IfsFsExtentV2 extent={0};
+    uint32_t count=99u;
+    CHECK(ifs_pfs3_v2_reader_map(&host,"/kernel.img",0u,&extent,1u,&count)==IFS_FS_OK &&
+          count==1u && extent.logical_offset==0u && extent.physical_offset==20u*SECTOR &&
+          extent.length==4u*SECTOR);
+    CHECK(ifs_pfs3_v2_reader_map(&host,"/kernel.img",1u,&extent,1u,&count)==IFS_FS_OK &&
+          count==1u && extent.logical_offset==4u*SECTOR && extent.physical_offset==24u*SECTOR);
+    CHECK(ifs_pfs3_v2_reader_map(&host,"/kernel.img",2u,&extent,1u,&count)==IFS_FS_END && !count);
     be32(second_anode+8u,6u);
+    CHECK(ifs_pfs3_v2_reader_map(&host,"/kernel.img",0u,&extent,1u,&count)==IFS_FS_CORRUPT && !count);
     memset(out,0xA5,sizeof(out));
     CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,1u)==IFS_FS_CORRUPT);
     CHECK(out[0]==0xA5u);
