@@ -174,6 +174,27 @@ int main(void)
           ==IFS_FS_CORRUPT);
     be16(4u*SECTOR,0x4942u);
 
+    /* A short read cannot certify a corrupt tail, and a cyclic chain
+     * cannot replay a valid data extent to fabricate a longer file. */
+    const unsigned first_anode=6u*SECTOR+16u+6u*12u;
+    const unsigned second_anode=first_anode+12u;
+    be32(first_anode,4u);
+    be32(first_anode+8u,7u);
+    be32(second_anode,4u);
+    be32(second_anode+4u,24u);
+    CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,FILE_BYTES)==IFS_FS_OK);
+    CHECK(memcmp(out,expected,FILE_BYTES)==0);
+    be32(second_anode+8u,6u);
+    memset(out,0xA5,sizeof(out));
+    CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,1u)==IFS_FS_CORRUPT);
+    CHECK(out[0]==0xA5u);
+    be32(second_anode+8u,0u);
+    be32(first_anode+8u,0u);
+    CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,1u)==IFS_FS_CORRUPT);
+    CHECK(out[0]==0xA5u);
+    memcpy(disk+first_anode,before+first_anode,24u);
+    CHECK(memcmp(disk,before,MEDIA)==0);
+
     /* Malformed block extents must not allow reading reserved metadata. */
     be32(6u*SECTOR+16u+6u*12u+4u,4u);
     CHECK(ifs_pfs3_v2_reader_read(&host,"/kernel.img",0u,out,128u)

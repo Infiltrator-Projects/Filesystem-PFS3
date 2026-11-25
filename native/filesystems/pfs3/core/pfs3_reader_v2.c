@@ -309,6 +309,38 @@ int ifs_pfs3_v2_reader_list(const IfsFsHostRuntimeV2 *host,
     rc=lookup(&r,dir.anode,NULL,0u,index,&found);
     return rc==IFS_FS_OK?present(&found,entry):rc;
 }
+/* Validate the complete data chain before exposing any payload. A short
+ * read must not hide a corrupt tail or a cycle that would replay sectors.
+ * Brent's cycle detection uses constant storage and one anode read per
+ * step, preserving the freestanding reader's bounded memory footprint. */
+static int validate_file_chain(const Reader *r,const File *file)
+{
+    uint32_t current=file->anode,anchor=current,guard=0u;
+    uint64_t power=1u,distance=0u,sectors=0u;
+    const uint64_t needed=((uint64_t)file->bytes+r->sector_bytes-1u)/r->sector_bytes;
+    while(current) {
+        IfsPfs3AnodeRecord node;
+        if(++guard>MAX_CHAIN)return IFS_FS_CORRUPT;
+        if(r->host->cancelled && r->host->cancelled(r->host->context))
+            return IFS_FS_BUSY;
+        int rc=anode(r,current,&node);
+        if(rc!=IFS_FS_OK)return rc;
+        if(!node.cluster_size || node.block_number<=r->root.last_reserved ||
+           ifs_pfs3_validate_anode_extent(&node,r->media_sectors) ||
+           node.cluster_size>r->media_sectors-sectors)
+            return IFS_FS_CORRUPT;
+        sectors+=node.cluster_size;
+        current=node.next_anode;
+        if(!current)break;
+        ++distance;
+        if(current==anchor)return IFS_FS_CORRUPT;
+        if(distance==power) {
+            anchor=current;power*=2u;distance=0u;
+        }
+    }
+    return sectors>=needed?IFS_FS_OK:IFS_FS_CORRUPT;
+}
+
 int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
                             const char *path,uint64_t offset,
                             void *destination,uint32_t count)
@@ -324,6 +356,8 @@ int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
     if(offset>found.bytes || count>found.bytes-offset)
         return IFS_FS_INVALID;
     if(!count)return IFS_FS_OK;
+    rc=validate_file_chain(&r,&found);
+    if(rc!=IFS_FS_OK)return rc;
     uint32_t current=found.anode,guard=0u;
     uint64_t skip=offset/r.sector_bytes;
     uint32_t inside=(uint32_t)(offset%r.sector_bytes);
@@ -331,6 +365,8 @@ int ifs_pfs3_v2_reader_read(const IfsFsHostRuntimeV2 *host,
     while(current && count) {
         IfsPfs3AnodeRecord node;
         if(++guard>MAX_CHAIN)return IFS_FS_CORRUPT;
+        if(r.host->cancelled && r.host->cancelled(r.host->context))
+            return IFS_FS_BUSY;
         rc=anode(&r,current,&node);
         if(rc!=IFS_FS_OK)return rc;
         if(!node.cluster_size || node.block_number<=r.root.last_reserved ||
