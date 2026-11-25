@@ -4,7 +4,7 @@
 
 PFS3 is an Amiga filesystem family based around reserved metadata blocks, anodes, directory blocks, optional extension metadata and mode bits controlling format capabilities.
 
-the Filesystems canonical PFS3 core currently recognises PFS1/PFS2 disk identities used by the supported format family and validates the structures required to extend toward a complete PFS3 implementation.
+The native PFS3 format core recognises PFS1/PFS2 disk identities used by the supported format family and validates the structures required to extend toward a complete PFS3 implementation.
 
 ## Disk identity
 
@@ -142,24 +142,11 @@ The root tracks both normal free blocks and an always-free reserve. Allocation m
 
 A roving pointer allows the allocator to avoid restarting every search at block zero. Extended-roving mode adds more detailed state in the extension record.
 
-## Filesystems source design
+## Current production source and Common V2 boundary
 
-Current state:
+The independent native engine is exposed only through `infiltrator_filesystem_api_v2`. The hosted and freestanding readers share [pfs3_reader_v2.c](core/pfs3_reader_v2.c); the [provider](../../../module/pfs3_module.c) negotiates the actual operation masks. Root-directory validation traverses the complete supported chain. The file reader validates the complete allocation chain before returning nonempty payload data, rejecting cycles, insufficient allocation and reserved-area extents. These are reader invariants, not a claim of support for superindexed layouts, large-file modes or link traversal. Format is a separate hosted capability; arbitrary writable namespace, relocation and recovery require separate qualification.
 
-```text
-core/
-  pfs3_core.c/.h         canonical root, extension, directory and anode format engine
-
-linux/
-  Makefile               independent project-native module build
-  core_bridge.c          canonical-core bridge
-  pfs3_linux.c           Linux VFS/block-device adapter
-
-windows/
-  README.md              Windows adapter not yet implemented
-```
-
-The Linux adapter is implemented and is part of the project-native deployment manifest. Its current advertised access mode is read-only; the existence of the adapter is not evidence for unimplemented write/recovery paths. Linux and future Windows adapters must use the same canonical anode, directory, root and extension rules rather than creating a second PFS3 implementation.
+Historical Linux and Windows adapter source is not the production runtime. The canonical package installs PFS3.so and its PDF only; the RUN downloads the exact qualified source revision. See [README](../../../README.md) and [release workflow](../../../.github/workflows/native-release.yml). Production BOOT handoff is independently qualified.
 
 ## Forensic completion notes against the PFS3 distribution's disk-structure guide
 
@@ -367,7 +354,7 @@ The original hard-disk structure guide describes the root/boot identity `PFS\1`.
 
 Those namespaces must not be conflated: the handler identifier used to select a filesystem implementation and the root block's on-disk identity are related but are not always the same value.
 
-## Design rules used by Filesystems
+## Native engine design rules
 
 - The canonical `core/` is the filesystem. It owns format semantics, validation, allocation/mapping rules, namespace rules, recovery rules and corruption policy whenever those rules are host-neutral.
 - `linux/` is a Linux VFS/block-device/module adapter, not a second filesystem implementation.
