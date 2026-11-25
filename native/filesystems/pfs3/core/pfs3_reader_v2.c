@@ -162,7 +162,7 @@ static int equal(const char *a,size_t n,const char *b,size_t m)
 static int lookup(const Reader *r,uint32_t directory,
                   const char *name,size_t name_len,uint32_t index,File *found)
 {
-    if(!r || !found)return IFS_FS_INVALID;
+    if(!r || (name && !found))return IFS_FS_INVALID;
     unsigned char block[4096];
     uint32_t current=directory,guard=0u;
     uint64_t ordinal=0u;
@@ -170,10 +170,13 @@ static int lookup(const Reader *r,uint32_t directory,
     int have_match=0;
     while(current) {
         IfsPfs3AnodeRecord node;
-        if(++guard>MAX_CHAIN)return IFS_FS_CORRUPT;
+        if(++guard>MAX_CHAIN ||
+           guard>(r->root.last_reserved-r->root.first_reserved+1u)/r->reserved_sectors)
+            return IFS_FS_CORRUPT;
         int rc=anode(r,current,&node);
         if(rc!=IFS_FS_OK)return rc;
-        if (!node.cluster_size || !reserved(r,node.block_number))
+        if (!node.cluster_size || node.next_anode==current ||
+            !reserved(r,node.block_number))
             return IFS_FS_CORRUPT;
         for(uint32_t i=0u;i<node.cluster_size;++i) {
             uint64_t pos=(uint64_t)node.block_number+
@@ -198,11 +201,13 @@ static int lookup(const Reader *r,uint32_t directory,
                    e.anode<6u)return IFS_FS_CORRUPT;
                 const char *disk=(const char *)(block+off+
                                   IFS_PFS3_DIRENTRY_NAME_OFFSET);
-                for(uint32_t k=0u;k<e.name_length;++k)
+                /* Validation-only traversal accepts names outside the
+                 * reader's ASCII subset but still validates every record. */
+                if(found) for(uint32_t k=0u;k<e.name_length;++k)
                     if((unsigned char)disk[k]>=128u)return IFS_FS_UNSUPPORTED;
-                if((name && equal(name,name_len,disk,e.name_length)) ||
-                   (!name && ordinal==index)) {
-                    File *destination=name?&matched:found;
+                if(found && ((name && equal(name,name_len,disk,e.name_length)) ||
+                   (!name && ordinal==index))) {
+                    File *destination=&matched;
                     if(name && have_match)return IFS_FS_CORRUPT;
                     destination->anode=e.anode;
                     destination->bytes=e.file_size_low;
@@ -210,7 +215,6 @@ static int lookup(const Reader *r,uint32_t directory,
                     destination->name_length=e.name_length;
                     memcpy(destination->name,disk,e.name_length);
                     destination->name[e.name_length]='\0';
-                    if(!name)return IFS_FS_OK;
                     have_match=1;
                     /* Continue through every directory cluster and anode.
                      * Identical case-folded names invalidate path lookup. */
@@ -221,7 +225,8 @@ static int lookup(const Reader *r,uint32_t directory,
         }
         current=node.next_anode;
     }
-    if(name && have_match) {
+    if(!found)return IFS_FS_OK;
+    if(have_match) {
         *found=matched;
         return IFS_FS_OK;
     }
@@ -276,20 +281,9 @@ int ifs_pfs3_v2_reader_validate(const IfsFsHostRuntimeV2 *host)
     Reader r;
     int rc=start(host,&r);
     if(rc!=IFS_FS_OK)return rc;
-    IfsPfs3AnodeRecord node;
-    rc=anode(&r,ROOT_ANODE,&node);
-    if(rc!=IFS_FS_OK)return rc;
-    if(!node.cluster_size || !reserved(&r,node.block_number))
-        return IFS_FS_CORRUPT;
-    unsigned char raw[4096];
-    rc=reserved_read(&r,node.block_number,raw);
-    if(rc!=IFS_FS_OK)return rc;
-    IfsPfs3DirBlockView view;
-    uint32_t count=0u;
-    if(ifs_pfs3_decode_directory_block(raw,r.root.reserved_block_size,
-       !!(r.root.options&IFS_PFS3_MODE_DIR_EXTENSION),&view,&count) ||
-       view.directory_anode!=ROOT_ANODE)return IFS_FS_CORRUPT;
-    return IFS_FS_OK;
+    /* Inspect every directory cluster, not merely the first root block.
+     * A corrupt or cyclic tail must prevent a successful mount. */
+    return lookup(&r,ROOT_ANODE,NULL,0u,0u,NULL);
 }
 int ifs_pfs3_v2_reader_stat(const IfsFsHostRuntimeV2 *host,
                             const char *path,IfsFsEntryV2 *entry)

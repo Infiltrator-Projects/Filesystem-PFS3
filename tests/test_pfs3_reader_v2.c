@@ -155,6 +155,17 @@ int main(void)
         CHECK(memcmp(disk,before,MEDIA)==0);
     }
 
+    /* The first root block is valid; the second is not. Neither mount
+     * validation nor enumeration may ignore the malformed directory tail. */
+    be32(6u*SECTOR+16u+5u*12u,2u);
+    CHECK(ifs_pfs3_v2_reader_validate(&host)==IFS_FS_CORRUPT);
+    CHECK(ifs_pfs3_v2_reader_list(&host,"/",0u,&entry)==IFS_FS_CORRUPT);
+    be32(6u*SECTOR+16u+5u*12u,1u);
+    be32(6u*SECTOR+16u+5u*12u+8u,5u);
+    CHECK(ifs_pfs3_v2_reader_validate(&host)==IFS_FS_CORRUPT);
+    be32(6u*SECTOR+16u+5u*12u+8u,0u);
+    CHECK(memcmp(disk,before,MEDIA)==0);
+
     /* An on-disk anode index with the wrong PFS3 format marker is corruption,
      * not an empty directory or a successful no-op file read. */
     be16(4u*SECTOR,0x0000u);
