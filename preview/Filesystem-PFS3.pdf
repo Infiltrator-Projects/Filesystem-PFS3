@@ -1,5 +1,4 @@
 %PDF-1.4
-%‚„œ”
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
 endobj
@@ -185,7 +184,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 19 0 R >>
 endobj
 19 0 obj
-<< /Length 1529 >>
+<< /Length 1522 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
 0.04 0.54 0.60 rg 50 747 115 4 re f
@@ -196,7 +195,7 @@ BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched o
 BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 07) Tj ET
 BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INFILTRATOROS INTEGRATION BOUNDARY) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (PFS3.so is an independent adapter around on-media semantics established by the PFS3) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (sources. The published .so and optional .ko must be tested against real images from an) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (sources. The published Common V2 .so must be tested against real images from an) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (independent PFS implementation. Defragmentation and recovery claims require physical) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (layout verification and interruption tests.) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (The public PFS3 source tree and its version history are stronger provenance than) Tj ET
@@ -208,7 +207,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 21 0 R >>
 endobj
 21 0 obj
-<< /Length 1979 >>
+<< /Length 1963 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
 0.04 0.54 0.60 rg 50 747 115 4 re f
@@ -226,7 +225,7 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. PFS3 All-In-One source 
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://github.com/tonioni/pfs3aio) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. AmigaOS file system comparison and other contemporary alternatives) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://wiki.amigaos.net/wiki/UserDoc%3AAmigaOS_File_Systems) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our independent .so, optional .ko, build procedures and test evidence describe a separate) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our Common V2 .so, build procedures and test evidence describe a separate) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
 endstream
@@ -375,37 +374,37 @@ endobj
 xref
 0 30
 0000000000 65535 f 
-0000000015 00000 n 
-0000000064 00000 n 
-0000000198 00000 n 
-0000000268 00000 n 
-0000000343 00000 n 
-0000000411 00000 n 
-0000000557 00000 n 
-0000003350 00000 n 
-0000003496 00000 n 
-0000005489 00000 n 
-0000005637 00000 n 
-0000007582 00000 n 
-0000007730 00000 n 
-0000009527 00000 n 
-0000009675 00000 n 
-0000011677 00000 n 
-0000011825 00000 n 
-0000013557 00000 n 
-0000013705 00000 n 
-0000015286 00000 n 
-0000015434 00000 n 
-0000017465 00000 n 
-0000017613 00000 n 
-0000020487 00000 n 
-0000020635 00000 n 
-0000023369 00000 n 
-0000023517 00000 n 
-0000026140 00000 n 
-0000026288 00000 n 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000192 00000 n 
+0000000262 00000 n 
+0000000337 00000 n 
+0000000405 00000 n 
+0000000551 00000 n 
+0000003344 00000 n 
+0000003490 00000 n 
+0000005483 00000 n 
+0000005631 00000 n 
+0000007576 00000 n 
+0000007724 00000 n 
+0000009521 00000 n 
+0000009669 00000 n 
+0000011671 00000 n 
+0000011819 00000 n 
+0000013551 00000 n 
+0000013699 00000 n 
+0000015273 00000 n 
+0000015421 00000 n 
+0000017436 00000 n 
+0000017584 00000 n 
+0000020458 00000 n 
+0000020606 00000 n 
+0000023340 00000 n 
+0000023488 00000 n 
+0000026111 00000 n 
+0000026259 00000 n 
 trailer
 << /Size 30 /Root 1 0 R >>
 startxref
-29997
+29968
 %%EOF
