@@ -3,7 +3,7 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R] /Count 12 >>
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R 36 0 R 38 0 R 40 0 R 42 0 R 44 0 R 46 0 R 48 0 R 50 0 R] /Count 23 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
@@ -18,6 +18,294 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 7 0 R >>
 endobj
 7 0 obj
+<< /Length 1205 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (History and scope) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(Professional File System is the Amiga filesystem developed by Michiel Pelt,) Tj
+T* (later released as PFS3. The maintained PFS3aio code supports historical) Tj
+T* (media and later extensions. This reference is based on the original PFS3aio) Tj
+T* (source retained in this repository, including blocks.h, anode allocation,) Tj
+T* (directory handling, allocation.c and disk update code. The two observed disk) Tj
+T* (identifiers PFS followed by binary 1 or 2 \(0x50465301/02\) are not DOS or SFS) Tj
+T* (identifiers. PFS3 uses allocation nodes \(anodes\) that describe runs of) Tj
+T* (storage, reserved metadata blocks, allocation bitmaps and metadata commit) Tj
+T* (mechanisms. A direct-index reader is not equivalent to support for every) Tj
+T* (original PFS3 feature.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 1 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 1344 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Geometry and root field inventory) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(The root is at disk logical block 2, with disk block bytes S and reserved) Tj
+T* (metadata block bytes R separately defined. All multibyte fields are) Tj
+T* (big-endian and packed according to the original 2-byte alignment. Root) Tj
+T* (fields: type 0, options 4, datestamp 8, 16-bit creation) Tj
+T* (day/minute/tick/protection 12/14/16/18, Pascal name 20..51, last/first) Tj
+T* (reserved sector 52/56, free reserved blocks 60, reserved block bytes 64) Tj
+T* (\(16-bit\), root cluster sectors 66, free data blocks 68, always-free reserve) Tj
+T* (72, roving pointer 76, deleted-directory pointer 80, disk size in logical) Tj
+T* (sectors 84, root extension sector 88, reserved 92, index array from 96.) Tj
+T* (Validate declared size, S/R ratio and every extent. A reserved-block pointer) Tj
+T* (must align relative to first_reserved; it is a sector address, not a) Tj
+T* (reserved-block index.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 2 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 11 0 R >>
+endobj
+11 0 obj
+<< /Length 1298 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Mode bits and root extension) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(Mode bits 0..12 select hard disk, split anodes, directory extension, deleted) Tj
+T* (directory, size field, root extension, datestamp, superindex, super deleted) Tj
+T* (directory, extended roving, long filename, large file and stored geometry) Tj
+T* (respectively. These are independent feature gates, not version labels. An EX) Tj
+T* (root extension has ID at 0, options 4, datestamp 8, format version 12,) Tj
+T* (root/volume dates at 16/22, postponed operation and three arguments at) Tj
+T* (28/32/36/40, reserved roving at 44, bit and current anode sequence at 48/50,) Tj
+T* (deldir roving/size 52/54, max name length 56 and superindex array from 64.) Tj
+T* (Postponed operation types 1,2,3 denote free blocks with/without anodes and) Tj
+T* (free anode chain. Do not replay unknown operations or infer current state) Tj
+T* (from a datestamp alone.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 3 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 13 0 R >>
+endobj
+13 0 obj
+<< /Length 1309 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Reserved storage and free bitmaps) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(The reserved area has its own bitmap directly after the root record; its) Tj
+T* (bits represent R-byte reserved blocks rather than S-byte data blocks.) Tj
+T* (Ordinary data allocation starts at last_reserved+1, according to the) Tj
+T* (original allocation.c. Each bitmap block begins with 16-bit BM ID, reserved) Tj
+T* (word, 32-bit datestamp and sequence at 4/8; bitmap words start at 12. Bits) Tj
+T* (are MSB first and 1 means free. With R=1024, each normal bitmap covers) Tj
+T* (\(1024-12\)*8=8096 sectors. Data sector z maps to bit z-\(last_reserved+1\);) Tj
+T* (divide by bitmap coverage then select the word and bit. For first data) Tj
+T* (sector 1000 and z=1100, bit 100 is word 3 mask 0x08000000. A separate) Tj
+T* (reserved bit indexes \(sector-first_reserved\)/\(R/S\). Verify both maps, counts) Tj
+T* (and always-free reserves before allocating.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 4 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 15 0 R >>
+endobj
+15 0 obj
+<< /Length 1230 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Bitmap and anode indexes) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(An index block has 16-bit ID, reserved word, datestamp at 4, sequence at 8,) Tj
+T* (32-bit pointers from 12. Capacity Q=\(R-12\)/4. In the small/direct profile) Tj
+T* (the root holds five bitmap index pointers at 96 and 99 anode index pointers) Tj
+T* (from 116. A bitmap block sequence b maps through root bitmap index) Tj
+T* (floor\(b/Q\) and pointer b mod Q; validate all IDs, sequence and bounds.) Tj
+T* (Larger superindex profiles have 104 bitmap index pointers and obtain anode) Tj
+T* (index roots through the extension's superindex. Do not interpret the small) Tj
+T* (root union as a superindex array. Superindex traversal and feature admission) Tj
+T* (must be verified against the original handler before use. Unallocated) Tj
+T* (pointer entries are not valid metadata addresses.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 5 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 17 0 R >>
+endobj
+17 0 obj
+<< /Length 1265 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Anode record and lookup example) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(An AB block has ID 0x4142 at 0, datestamp 4, sequence 8, reserved word 12) Tj
+T* (and 12-byte anodes from 16. Each anode holds run length in disk blocks at 0,) Tj
+T* (first physical sector at 4, next anode identity at 8. At R=1024,) Tj
+T* (N=\(1024-16\)/12=84 anodes per block and Q=253 pointers per index. For) Tj
+T* (nonsplit numbering, sequence=floor\(id/N\), slot=id mod N; split numbering) Tj
+T* (uses upper/lower 16 bits. Resolve index number floor\(sequence/Q\), index) Tj
+T* (offset sequence mod Q, then AB slot at 16+12*slot. Example id=1000 nonsplit) Tj
+T* (yields sequence 11, slot 76, record offset 928. Split ID 0x000B004C) Tj
+T* (identifies the same slot. Root anode is 5; user identities start at 6; zero) Tj
+T* (terminates an anode chain. Validate every sequence, reserved pointer and) Tj
+T* (slot.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 6 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 19 0 R >>
+endobj
+19 0 obj
+<< /Length 1316 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (File data and directory records) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(Anode links determine logical order. A run \(physical 2000,length 3\) followed) Tj
+T* (by \(3000,length 2\) at S=512 maps logical byte 1800 to physical byte) Tj
+T* (3000*512+264=1536264. Clip to the directory entry's file size, not run) Tj
+T* (capacity. Empty files may have a zero-length anode with a sentinel start. A) Tj
+T* (DB directory block has ID 0x4442, datestamp 4, directory anode 12 and parent) Tj
+T* (16, variable entries from 20. Each entry: next/record length byte 0, signed) Tj
+T* (type 1, anode 2, low file size 6, three 16-bit DateStamp components) Tj
+T* (10/12/14, protection 16, name length 17, name from 18 followed by one-byte) Tj
+T* (comment length and comment. Zero length ends directory records; all nonzero) Tj
+T* (lengths must be even and bounded. Follow the directory's anode chain through) Tj
+T* (reserved metadata, not ordinary payload.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 7 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 21 0 R >>
+endobj
+21 0 obj
+<< /Length 1335 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Extended entries and deletion semantics) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(Directory-extension records end in a 16-bit presence mask for up to eleven) Tj
+T* (extra words. Starting immediately before the mask, walk backwards through) Tj
+T* (present fields in increasing bit order; omitted words are zero. The known) Tj
+T* (fields include link identity, ownership, high protection bits, rollover) Tj
+T* (sizes/pointer and high 16 bits of file size \(field 10\). Large file length) Tj
+T* (combines high16 shifted 32 with low32. Verify name/comment and extra fields) Tj
+T* (do not overlap and preserve unknown extensions. Native deleted-directory) Tj
+T* (records may keep recoverable file references; a deleted entry is not proof) Tj
+T* (its old payload is still allocated. Rollover files and soft/hard links have) Tj
+T* (separate semantics and require feature-specific verification. Do not flatten) Tj
+T* (a link or rollover object into an ordinary file.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 8 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 23 0 R >>
+endobj
+23 0 obj
+<< /Length 1317 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Metadata update and recovery) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(The original implementation distinguishes immediately allocatable space,) Tj
+T* (pending releases and reserved metadata headroom. Modified metadata can be) Tj
+T* (relocated, retaining old blocks until a root update publishes the new state.) Tj
+T* (Deferred frees and postponed operations avoid prematurely reclaiming) Tj
+T* (referenced blocks. A writer must follow the original UpdateDisk, allocation) Tj
+T* (and anode lifecycle, including rollback on failed publication; a datestamp) Tj
+T* (does not establish a journal commit by itself. A relocation needs reserved) Tj
+T* (metadata space, data copy and verification, coherent anode and bitmap) Tj
+T* (updates and durable root publication. Do not release old storage before the) Tj
+T* (new reachable root is durable. Exact ordering and interrupted root/metadata) Tj
+T* (recovery must be tested against original images.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 9 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 25 0 R >>
+endobj
+25 0 obj
+<< /Length 1258 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (References and acceptance) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(Pinned original source:) Tj
+T* (https://github.com/Infiltrator-Projects/Filesystem-PFS3/tree/2a4bfebea4b31ef) Tj
+T* (0ea2d6cdbf6c04a7abcc7c5dc/native/filesystems/pfs3/original/pfs3aio ;) Tj
+T* (cross-check blocks.h, allocation.c, anode and directory algorithms and root) Tj
+T* (update. Test actual PFS3/PFS3aio fixtures with split and nonsplit numbering,) Tj
+T* (both disk IDs, reserved block sizes, direct and superindex, long names,) Tj
+T* (directory extensions, large files, links, deldir, rollover and interrupted) Tj
+T* (frees. Compare file hashes and all metadata ownership; native writer) Tj
+T* (qualification, exact superindex and recovery semantics remain outstanding.) Tj
+T* (The historical provider documents follow; current implementation support is) Tj
+T* (separate from the format's full potential.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 10 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 27 0 R >>
+endobj
+27 0 obj
+<< /Length 638 >>
+stream
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.01 0.52 0.56 rg 50 747 116 5 re f
+1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
+BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
+0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Historical reference appendix) Tj ET
+BT /F1 11 Tf 15 TL 50 685 Td
+(The earlier manual follows for provenance. Its provider and qualification) Tj
+T* (statements are historical; the new engineering chapters take precedence for) Tj
+T* (format interpretation.) Tj
+ET
+0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 11 | Original format, not provider qualification) Tj ET
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 29 0 R >>
+endobj
+29 0 obj
 << /Length 2742 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -55,10 +343,10 @@ BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 213.0 Tm (5. Design rationale and li
 BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 190.0 Tm (6. InfiltratorOS integration boundary) Tj ET
 endstream
 endobj
-8 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
+30 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 31 0 R >>
 endobj
-9 0 obj
+31 0 obj
 << /Length 1942 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -81,10 +369,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (historical format is not a
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 510.0 Tm (Unix inodes or FAT clusters.) Tj ET
 endstream
 endobj
-10 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 11 0 R >>
+32 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 33 0 R >>
 endobj
-11 0 obj
+33 0 obj
 << /Length 1893 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -106,10 +394,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (generic illustration of ro
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (block locations must be taken from format structures and verified source definitions.) Tj ET
 endstream
 endobj
-12 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 13 0 R >>
+34 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 35 0 R >>
 endobj
-13 0 obj
+35 0 obj
 << /Length 1745 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -130,10 +418,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (unsupported or unknown met
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (read access does not mean that arbitrary directory mutations can be implemented safely.) Tj ET
 endstream
 endobj
-14 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 15 0 R >>
+36 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 37 0 R >>
 endobj
-15 0 obj
+37 0 obj
 << /Length 1950 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -156,10 +444,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (selecting a guessed valid 
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 510.0 Tm (unrelated filesystem's design.) Tj ET
 endstream
 endobj
-16 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 17 0 R >>
+38 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 39 0 R >>
 endobj
-17 0 obj
+39 0 obj
 << /Length 1680 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -180,10 +468,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (handlers does not prove Li
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (needs ongoing comparison with source revisions and original release notes.) Tj ET
 endstream
 endobj
-18 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 19 0 R >>
+40 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 41 0 R >>
 endobj
-19 0 obj
+41 0 obj
 << /Length 1522 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -203,10 +491,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (unsupported assumptions ab
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (distinction from the InfiltratorOS release process.) Tj ET
 endstream
 endobj
-20 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 21 0 R >>
+42 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 43 0 R >>
 endobj
-21 0 obj
+43 0 obj
 << /Length 1963 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -230,10 +518,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
 endstream
 endobj
-22 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 23 0 R >>
+44 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 45 0 R >>
 endobj
-23 0 obj
+45 0 obj
 << /Length 2822 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -263,10 +551,10 @@ BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Separate persistent files
 BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (current root and metadata graph determine which extents are live.) Tj ET
 endstream
 endobj
-24 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 25 0 R >>
+46 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 47 0 R >>
 endobj
-25 0 obj
+47 0 obj
 << /Length 2682 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -296,10 +584,10 @@ BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Recovery should report co
 BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (manufacturing a new file topology.) Tj ET
 endstream
 endobj
-26 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 27 0 R >>
+48 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 49 0 R >>
 endobj
-27 0 obj
+49 0 obj
 << /Length 2571 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -329,10 +617,10 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 413 Tm (partition-relative host I/O.
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 398 Tm (establish that every format variant or host profile is qualified.) Tj ET
 endstream
 endobj
-28 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 29 0 R >>
+50 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 51 0 R >>
 endobj
-29 0 obj
+51 0 obj
 << /Length 3657 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
@@ -372,39 +660,61 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 263 Tm (qualification.) Tj ET
 endstream
 endobj
 xref
-0 30
+0 52
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
-0000000192 00000 n 
-0000000262 00000 n 
-0000000337 00000 n 
-0000000405 00000 n 
-0000000551 00000 n 
-0000003344 00000 n 
-0000003490 00000 n 
-0000005483 00000 n 
-0000005631 00000 n 
-0000007576 00000 n 
-0000007724 00000 n 
-0000009521 00000 n 
-0000009669 00000 n 
-0000011671 00000 n 
-0000011819 00000 n 
-0000013551 00000 n 
-0000013699 00000 n 
-0000015273 00000 n 
-0000015421 00000 n 
-0000017436 00000 n 
-0000017584 00000 n 
-0000020458 00000 n 
-0000020606 00000 n 
-0000023340 00000 n 
-0000023488 00000 n 
-0000026111 00000 n 
-0000026259 00000 n 
+0000000269 00000 n 
+0000000339 00000 n 
+0000000414 00000 n 
+0000000482 00000 n 
+0000000628 00000 n 
+0000001884 00000 n 
+0000002030 00000 n 
+0000003425 00000 n 
+0000003573 00000 n 
+0000004923 00000 n 
+0000005071 00000 n 
+0000006432 00000 n 
+0000006580 00000 n 
+0000007862 00000 n 
+0000008010 00000 n 
+0000009327 00000 n 
+0000009475 00000 n 
+0000010843 00000 n 
+0000010991 00000 n 
+0000012378 00000 n 
+0000012526 00000 n 
+0000013895 00000 n 
+0000014043 00000 n 
+0000015353 00000 n 
+0000015501 00000 n 
+0000016190 00000 n 
+0000016338 00000 n 
+0000019132 00000 n 
+0000019280 00000 n 
+0000021274 00000 n 
+0000021422 00000 n 
+0000023367 00000 n 
+0000023515 00000 n 
+0000025312 00000 n 
+0000025460 00000 n 
+0000027462 00000 n 
+0000027610 00000 n 
+0000029342 00000 n 
+0000029490 00000 n 
+0000031064 00000 n 
+0000031212 00000 n 
+0000033227 00000 n 
+0000033375 00000 n 
+0000036249 00000 n 
+0000036397 00000 n 
+0000039131 00000 n 
+0000039279 00000 n 
+0000041902 00000 n 
+0000042050 00000 n 
 trailer
-<< /Size 30 /Root 1 0 R >>
+<< /Size 52 /Root 1 0 R >>
 startxref
-29968
+45759
 %%EOF

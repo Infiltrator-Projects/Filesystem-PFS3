@@ -29,8 +29,10 @@ The target installation is `/System/Filesystems/PFS3.so` and `/System/Resources/
 - [Provider implementation](module/pfs3_module.c)
 - [Native design or source provenance](native/filesystems/pfs3/DESIGN.md)
 - [Migration and source history](MIGRATION_STATUS.md)
-- [Original-format reference source](docs/PFS3.pages) and [PDF](docs/PFS3.pdf)
+- [Original-format reference source](docs/PFS3.pdfstreams) and [PDF](docs/PFS3.pdf)
 - [Project philosophy](docs/PHILOSOPHY.md)
 - [Common ABI](https://github.com/Infiltrator-Projects/Libraries)
 
 The original-format reference and historical migration notes describe different evidence from the current production provider. When descriptions disagree, the current exported descriptor, implementation, executable tests and exact-revision release evidence take precedence.
+
+The [engineering reference](docs/PFS3-TECHNICAL-REFERENCE.md) adds field-level original-format guidance. Earlier material is preserved in the PDF.
