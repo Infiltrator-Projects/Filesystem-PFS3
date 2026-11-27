@@ -1,505 +1,211 @@
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (History and scope) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Professional File System is the Amiga filesystem developed by Michiel Pelt,) Tj
-T* (later released as PFS3. The maintained PFS3aio code supports historical) Tj
-T* (media and later extensions. This reference is based on the original PFS3aio) Tj
-T* (source retained in this repository, including blocks.h, anode allocation,) Tj
-T* (directory handling, allocation.c and disk update code. The two observed disk) Tj
-T* (identifiers PFS followed by binary 1 or 2 \(0x50465301/02\) are not DOS or SFS) Tj
-T* (identifiers. PFS3 uses allocation nodes \(anodes\) that describe runs of) Tj
-T* (storage, reserved metadata blocks, allocation bitmaps and metadata commit) Tj
-T* (mechanisms. A direct-index reader is not equivalent to support for every) Tj
-T* (original PFS3 feature.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 1 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 18 Tf 43 736 Td (Contents) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 711 Td (1. History and scope) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 695 Td (2. Geometry and root field inventory) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 679 Td (3. Mode bits and root extension) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 663 Td (4. Reserved storage and free bitmaps) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 647 Td (5. Bitmap and anode indexes) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 631 Td (6. Anode record and lookup example) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 615 Td (7. File data and directory records) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 599 Td (8. Extended entries and deletion semantics) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 583 Td (9. Metadata update and recovery) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 567 Td (10. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 551 Td (11. References and acceptance) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 1) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Geometry and root field inventory) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The root is at disk logical block 2, with disk block bytes S and reserved) Tj
-T* (metadata block bytes R separately defined. All multibyte fields are) Tj
-T* (big-endian and packed according to the original 2-byte alignment. Root) Tj
-T* (fields: type 0, options 4, datestamp 8, 16-bit creation) Tj
-T* (day/minute/tick/protection 12/14/16/18, Pascal name 20..51, last/first) Tj
-T* (reserved sector 52/56, free reserved blocks 60, reserved block bytes 64) Tj
-T* (\(16-bit\), root cluster sectors 66, free data blocks 68, always-free reserve) Tj
-T* (72, roving pointer 76, deleted-directory pointer 80, disk size in logical) Tj
-T* (sectors 84, root extension sector 88, reserved 92, index array from 96.) Tj
-T* (Validate declared size, S/R ratio and every extent. A reserved-block pointer) Tj
-T* (must align relative to first_reserved; it is a sector address, not a) Tj
-T* (reserved-block index.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 2 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (1. History and scope) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Professional File System is the Amiga filesystem developed by Michiel Pelt, later) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (released as PFS3. The maintained PFS3aio code supports historical media and later) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (extensions. This reference is based on the original PFS3aio source retained in this) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (repository, including blocks.h, anode allocation, directory handling, allocation.c) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (and disk update code. The two observed disk identifiers PFS followed by binary 1 or) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (2 \(0x50465301/02\) are not DOS or SFS identifiers. PFS3 uses allocation nodes) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (\(anodes\) that describe runs of storage, reserved metadata blocks, allocation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (bitmaps and metadata commit mechanisms. A direct-index reader is not equivalent to) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (support for every original PFS3 feature.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (The historical commercial and later open-source PFS3 development aimed at hard-disk) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (throughput, directory responsiveness and recovery. PFS3aio source release is) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (important preservation evidence; it is not a variation of classic Amiga FFS or Unix) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (inode structures.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 2) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Mode bits and root extension) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Mode bits 0..12 select hard disk, split anodes, directory extension, deleted) Tj
-T* (directory, size field, root extension, datestamp, superindex, super deleted) Tj
-T* (directory, extended roving, long filename, large file and stored geometry) Tj
-T* (respectively. These are independent feature gates, not version labels. An EX) Tj
-T* (root extension has ID at 0, options 4, datestamp 8, format version 12,) Tj
-T* (root/volume dates at 16/22, postponed operation and three arguments at) Tj
-T* (28/32/36/40, reserved roving at 44, bit and current anode sequence at 48/50,) Tj
-T* (deldir roving/size 52/54, max name length 56 and superindex array from 64.) Tj
-T* (Postponed operation types 1,2,3 denote free blocks with/without anodes and) Tj
-T* (free anode chain. Do not replay unknown operations or infer current state) Tj
-T* (from a datestamp alone.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 3 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (2. Geometry and root field inventory) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The root is at disk logical block 2, with disk block bytes S and reserved metadata) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (block bytes R separately defined. All multibyte fields are big-endian and packed) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (according to the original 2-byte alignment. Root fields: type 0, options 4,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (datestamp 8, 16-bit creation day/minute/tick/protection 12/14/16/18, Pascal name) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (20..51, last/first reserved sector 52/56, free reserved blocks 60, reserved block) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (bytes 64 \(16-bit\), root cluster sectors 66, free data blocks 68, always-free) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (reserve 72, roving pointer 76, deleted-directory pointer 80, disk size in logical) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (sectors 84, root extension sector 88, reserved 92, index array from 96. Validate) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (declared size, S/R ratio and every extent. A reserved-block pointer must align) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (relative to first_reserved; it is a sector address, not a reserved-block index.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 3) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Reserved storage and free bitmaps) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The reserved area has its own bitmap directly after the root record; its) Tj
-T* (bits represent R-byte reserved blocks rather than S-byte data blocks.) Tj
-T* (Ordinary data allocation starts at last_reserved+1, according to the) Tj
-T* (original allocation.c. Each bitmap block begins with 16-bit BM ID, reserved) Tj
-T* (word, 32-bit datestamp and sequence at 4/8; bitmap words start at 12. Bits) Tj
-T* (are MSB first and 1 means free. With R=1024, each normal bitmap covers) Tj
-T* (\(1024-12\)*8=8096 sectors. Data sector z maps to bit z-\(last_reserved+1\);) Tj
-T* (divide by bitmap coverage then select the word and bit. For first data) Tj
-T* (sector 1000 and z=1100, bit 100 is word 3 mask 0x08000000. A separate) Tj
-T* (reserved bit indexes \(sector-first_reserved\)/\(R/S\). Verify both maps, counts) Tj
-T* (and always-free reserves before allocating.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 4 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (3. Mode bits and root extension) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Mode bits 0..12 select hard disk, split anodes, directory extension, deleted) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (directory, size field, root extension, datestamp, superindex, super deleted) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (directory, extended roving, long filename, large file and stored geometry) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (respectively. These are independent feature gates, not version labels. An EX root) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (extension has ID at 0, options 4, datestamp 8, format version 12, root/volume dates) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (at 16/22, postponed operation and three arguments at 28/32/36/40, reserved roving) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (at 44, bit and current anode sequence at 48/50, deldir roving/size 52/54, max name) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (length 56 and superindex array from 64. Postponed operation types 1,2,3 denote free) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (blocks with/without anodes and free anode chain. Do not replay unknown operations) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (or infer current state from a datestamp alone.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 4) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Bitmap and anode indexes) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(An index block has 16-bit ID, reserved word, datestamp at 4, sequence at 8,) Tj
-T* (32-bit pointers from 12. Capacity Q=\(R-12\)/4. In the small/direct profile) Tj
-T* (the root holds five bitmap index pointers at 96 and 99 anode index pointers) Tj
-T* (from 116. A bitmap block sequence b maps through root bitmap index) Tj
-T* (floor\(b/Q\) and pointer b mod Q; validate all IDs, sequence and bounds.) Tj
-T* (Larger superindex profiles have 104 bitmap index pointers and obtain anode) Tj
-T* (index roots through the extension's superindex. Do not interpret the small) Tj
-T* (root union as a superindex array. Superindex traversal and feature admission) Tj
-T* (must be verified against the original handler before use. Unallocated) Tj
-T* (pointer entries are not valid metadata addresses.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 5 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (4. Reserved storage and free bitmaps) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The reserved area has its own bitmap directly after the root record; its bits) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (represent R-byte reserved blocks rather than S-byte data blocks. Ordinary data) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (allocation starts at last_reserved+1, according to the original allocation.c. Each) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (bitmap block begins with 16-bit BM ID, reserved word, 32-bit datestamp and sequence) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (at 4/8; bitmap words start at 12. Bits are MSB first and 1 means free. With R=1024,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (each normal bitmap covers \(1024-12\)*8=8096 sectors. Data sector z maps to bit) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (z-\(last_reserved+1\); divide by bitmap coverage then select the word and bit. For) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (first data sector 1000 and z=1100, bit 100 is word 3 mask 0x08000000. A separate) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (reserved bit indexes \(sector-first_reserved\)/\(R/S\). Verify both maps, counts and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (always-free reserves before allocating.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 5) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Anode record and lookup example) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(An AB block has ID 0x4142 at 0, datestamp 4, sequence 8, reserved word 12) Tj
-T* (and 12-byte anodes from 16. Each anode holds run length in disk blocks at 0,) Tj
-T* (first physical sector at 4, next anode identity at 8. At R=1024,) Tj
-T* (N=\(1024-16\)/12=84 anodes per block and Q=253 pointers per index. For) Tj
-T* (nonsplit numbering, sequence=floor\(id/N\), slot=id mod N; split numbering) Tj
-T* (uses upper/lower 16 bits. Resolve index number floor\(sequence/Q\), index) Tj
-T* (offset sequence mod Q, then AB slot at 16+12*slot. Example id=1000 nonsplit) Tj
-T* (yields sequence 11, slot 76, record offset 928. Split ID 0x000B004C) Tj
-T* (identifies the same slot. Root anode is 5; user identities start at 6; zero) Tj
-T* (terminates an anode chain. Validate every sequence, reserved pointer and) Tj
-T* (slot.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 6 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (5. Bitmap and anode indexes) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (An index block has 16-bit ID, reserved word, datestamp at 4, sequence at 8, 32-bit) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (pointers from 12. Capacity Q=\(R-12\)/4. In the small/direct profile the root holds) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (five bitmap index pointers at 96 and 99 anode index pointers from 116. A bitmap) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (block sequence b maps through root bitmap index floor\(b/Q\) and pointer b mod Q;) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (validate all IDs, sequence and bounds. Larger superindex profiles have 104 bitmap) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (index pointers and obtain anode index roots through the extension's superindex. Do) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (not interpret the small root union as a superindex array. Superindex traversal and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (feature admission must be verified against the original handler before use.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (Unallocated pointer entries are not valid metadata addresses.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 6) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (File data and directory records) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Anode links determine logical order. A run \(physical 2000,length 3\) followed) Tj
-T* (by \(3000,length 2\) at S=512 maps logical byte 1800 to physical byte) Tj
-T* (3000*512+264=1536264. Clip to the directory entry's file size, not run) Tj
-T* (capacity. Empty files may have a zero-length anode with a sentinel start. A) Tj
-T* (DB directory block has ID 0x4442, datestamp 4, directory anode 12 and parent) Tj
-T* (16, variable entries from 20. Each entry: next/record length byte 0, signed) Tj
-T* (type 1, anode 2, low file size 6, three 16-bit DateStamp components) Tj
-T* (10/12/14, protection 16, name length 17, name from 18 followed by one-byte) Tj
-T* (comment length and comment. Zero length ends directory records; all nonzero) Tj
-T* (lengths must be even and bounded. Follow the directory's anode chain through) Tj
-T* (reserved metadata, not ordinary payload.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 7 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (6. Anode record and lookup example) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (An AB block has ID 0x4142 at 0, datestamp 4, sequence 8, reserved word 12 and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (12-byte anodes from 16. Each anode holds run length in disk blocks at 0, first) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (physical sector at 4, next anode identity at 8. At R=1024, N=\(1024-16\)/12=84 anodes) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (per block and Q=253 pointers per index. For nonsplit numbering,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (sequence=floor\(id/N\), slot=id mod N; split numbering uses upper/lower 16 bits.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (Resolve index number floor\(sequence/Q\), index offset sequence mod Q, then AB slot) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (at 16+12*slot. Example id=1000 nonsplit yields sequence 11, slot 76, record offset) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (928. Split ID 0x000B004C identifies the same slot. Root anode is 5; user identities) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (start at 6; zero terminates an anode chain. Validate every sequence, reserved) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (pointer and slot.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 7) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Extended entries and deletion semantics) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Directory-extension records end in a 16-bit presence mask for up to eleven) Tj
-T* (extra words. Starting immediately before the mask, walk backwards through) Tj
-T* (present fields in increasing bit order; omitted words are zero. The known) Tj
-T* (fields include link identity, ownership, high protection bits, rollover) Tj
-T* (sizes/pointer and high 16 bits of file size \(field 10\). Large file length) Tj
-T* (combines high16 shifted 32 with low32. Verify name/comment and extra fields) Tj
-T* (do not overlap and preserve unknown extensions. Native deleted-directory) Tj
-T* (records may keep recoverable file references; a deleted entry is not proof) Tj
-T* (its old payload is still allocated. Rollover files and soft/hard links have) Tj
-T* (separate semantics and require feature-specific verification. Do not flatten) Tj
-T* (a link or rollover object into an ordinary file.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 8 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (7. File data and directory records) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Anode links determine logical order. A run \(physical 2000,length 3\) followed by) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (\(3000,length 2\) at S=512 maps logical byte 1800 to physical byte) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (3000*512+264=1536264. Clip to the directory entry's file size, not run capacity.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (Empty files may have a zero-length anode with a sentinel start. A DB directory) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (block has ID 0x4442, datestamp 4, directory anode 12 and parent 16, variable) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (entries from 20. Each entry: next/record length byte 0, signed type 1, anode 2, low) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (file size 6, three 16-bit DateStamp components 10/12/14, protection 16, name length) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (17, name from 18 followed by one-byte comment length and comment. Zero length ends) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (directory records; all nonzero lengths must be even and bounded. Follow the) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (directory's anode chain through reserved metadata, not ordinary payload.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 8) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Metadata update and recovery) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The original implementation distinguishes immediately allocatable space,) Tj
-T* (pending releases and reserved metadata headroom. Modified metadata can be) Tj
-T* (relocated, retaining old blocks until a root update publishes the new state.) Tj
-T* (Deferred frees and postponed operations avoid prematurely reclaiming) Tj
-T* (referenced blocks. A writer must follow the original UpdateDisk, allocation) Tj
-T* (and anode lifecycle, including rollback on failed publication; a datestamp) Tj
-T* (does not establish a journal commit by itself. A relocation needs reserved) Tj
-T* (metadata space, data copy and verification, coherent anode and bitmap) Tj
-T* (updates and durable root publication. Do not release old storage before the) Tj
-T* (new reachable root is durable. Exact ordering and interrupted root/metadata) Tj
-T* (recovery must be tested against original images.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 9 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (8. Extended entries and deletion semantics) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Directory-extension records end in a 16-bit presence mask for up to eleven extra) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (words. Starting immediately before the mask, walk backwards through present fields) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (in increasing bit order; omitted words are zero. The known fields include link) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (identity, ownership, high protection bits, rollover sizes/pointer and high 16 bits) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (of file size \(field 10\). Large file length combines high16 shifted 32 with low32.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (Verify name/comment and extra fields do not overlap and preserve unknown) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (extensions. Native deleted-directory records may keep recoverable file references;) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (a deleted entry is not proof its old payload is still allocated. Rollover files and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (soft/hard links have separate semantics and require feature-specific verification.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (Do not flatten a link or rollover object into an ordinary file.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 9) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (References and acceptance) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Pinned original source:) Tj
-T* (https://github.com/Infiltrator-Projects/Filesystem-PFS3/tree/2a4bfebea4b31ef) Tj
-T* (0ea2d6cdbf6c04a7abcc7c5dc/native/filesystems/pfs3/original/pfs3aio ;) Tj
-T* (cross-check blocks.h, allocation.c, anode and directory algorithms and root) Tj
-T* (update. Test actual PFS3/PFS3aio fixtures with split and nonsplit numbering,) Tj
-T* (both disk IDs, reserved block sizes, direct and superindex, long names,) Tj
-T* (directory extensions, large files, links, deldir, rollover and interrupted) Tj
-T* (frees. Compare file hashes and all metadata ownership; native writer) Tj
-T* (qualification, exact superindex and recovery semantics remain outstanding.) Tj
-T* (The historical provider documents follow; current implementation support is) Tj
-T* (separate from the format's full potential.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 10 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (9. Metadata update and recovery) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The original implementation distinguishes immediately allocatable space, pending) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (releases and reserved metadata headroom. Modified metadata can be relocated,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (retaining old blocks until a root update publishes the new state. Deferred frees) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (and postponed operations avoid prematurely reclaiming referenced blocks. A writer) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (must follow the original UpdateDisk, allocation and anode lifecycle, including) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (rollback on failed publication; a datestamp does not establish a journal commit by) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (itself. A relocation needs reserved metadata space, data copy and verification,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (coherent anode and bitmap updates and durable root publication. Do not release old) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (storage before the new reachable root is durable. Exact ordering and interrupted) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (root/metadata recovery must be tested against original images.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 10) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (PFS3 - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Historical reference appendix) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The earlier manual follows for provenance. Its provider and qualification) Tj
-T* (statements are historical; the new engineering chapters take precedence for) Tj
-T* (format interpretation.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 11 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (10. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The earlier direct-index hosted and freestanding profile was documented with) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (independently produced PFS media on 512-byte and 4 KiB hosts. Superindex,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (large-file and link traversal were outside that historical reader's scope; format) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (and namespace mutation are distinct. Historical workflow 45526904930 is evidence of) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (its tested scope only.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 626 Td (Common V2 is the independent provider interface:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 612 Td (https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 598 Td (ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (I/O, exclusive unmounted ownership and durable flush for mutation; distinguish) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (the same engine only for supported operations. Hosted, freestanding, BOOT, kernel,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (recovery and package qualification are independent. Current capability and release) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (status belongs to the repository README and exact-source qualification records;) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 514 Td (historical evidence is not a current status claim.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 490 Td (Historical source or test reference:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 476 Td (https://github.com/Infiltrator-Projects/Filesystem-PFS3/actions/runs/45526904930 .) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 11) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 01) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 694.0 Tm (OFFICIAL FORMAT / CHRONOLOGY / ENGINEERING) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 650.0 Tm (The third-generation Professional File System for Amiga platforms, with its own metadata) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 633.0 Tm (organisation and performance and recovery priorities.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 603.0 Tm (This guide documents the original format's technical architecture, history and independent) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 586.0 Tm (source references. InfiltratorOS modules and install packages are implementation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 569.0 Tm (artefacts, not the authority for the historic on-disk definition.) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 539.0 Tm (CONCEPTUAL MEDIA MAP) Tj ET
-0.05 0.36 0.47 rg 50 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 487.0 Tm (PFS ROOT) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 468.0 Tm (Format identity and volume state) Tj ET
-0.08 0.39 0.49 rg 301 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 487.0 Tm (DIRECTORY METADATA) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 468.0 Tm (Names and object references) Tj ET
-0.10 0.43 0.52 rg 50 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 405.0 Tm (ALLOCATION) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 386.0 Tm (Ownership and free-space control) Tj ET
-0.13 0.46 0.54 rg 301 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 405.0 Tm (DATA BLOCKS) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 386.0 Tm (Persistent file contents) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 332.0 Tm (CONTENTS) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 305.0 Tm (1. Historical chronology) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 282.0 Tm (2. Original on-disk architecture) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 259.0 Tm (3. Allocation and directories) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 236.0 Tm (4. Integrity and recovery) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 213.0 Tm (5. Design rationale and limitations) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 190.0 Tm (6. InfiltratorOS integration boundary) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 02) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (HISTORICAL CHRONOLOGY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (Professional File System was developed as a third-party Amiga alternative to original) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (OFS/FFS disk formats. PFS3 continued that line with design priorities such as directory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (responsiveness, hard disk throughput and recovery following interrupted operations. Its) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (historical commercial and later open-source development should be distinguished from) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (Commodore's stock Amiga Fast File System.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (A preservation and development milestone is the release of the PFS3 All-In-One sources,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (associated with Michiel Pelt and later contributors. The publicly available source tree) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (provides code-level evidence of allocation, formatting and volume functions. The) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (historical format is not accurately documented by treating PFS3 as a variant of generic) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 510.0 Tm (Unix inodes or FAT clusters.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 03) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ORIGINAL ON-DISK ARCHITECTURE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (PFS3 stores its own volume control, allocation and directory structures. Its internal) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (design and on-media identifiers are established by the original code, not by the Linux) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (kernel's AFFS driver. Source files such as allocation.c, volume.c, format.c and struct.h) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (are the appropriate field-level references for interpreting PFS3 volumes. A safe parser) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (must identify the relevant PFS revision and filesystem block size.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (File and directory metadata use PFS-specific structures and linkage. The implementation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (may maintain additional metadata used for efficient allocation and crash recovery. A) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (generic illustration of root, allocation and data areas is a conceptual map only; physical) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (block locations must be taken from format structures and verified source definitions.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 04) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ALLOCATION AND DIRECTORIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The allocator manages ownership and free-space structures independently of the legacy) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (OFS/FFS bitmap layout. Directory operations are coordinated with the filesystem's) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (persistent object representation. Large volumes and heavy directory workloads were major) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (practical concerns for Amiga hard-disk users who adopted third-party formats.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (Filename, comment, protection and timestamp handling must be matched to the PFS3 source) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (revision and AmigaDOS interface expectations. Cross-platform tools must preserve any) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (unsupported or unknown metadata rather than substituting generic POSIX values. Correct) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (read access does not mean that arbitrary directory mutations can be implemented safely.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 05) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INTEGRITY AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (PFS3's reputation for resilience stems from its own metadata management and update rules,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (not from a conventional FAT or JBD-style journal. The format's exact transaction and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (recovery guarantees must be derived from original source and qualified tests. A) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (source-level description should explain which persistent records select valid filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (state and how incomplete updates are recognised.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (A recovery utility must inspect control records, object references, allocation state and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (any PFS-specific commit or rollover indicators. When ownership or transaction state is) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (contradictory, read-only recovery and preservation of the original image are safer than) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (selecting a guessed valid state. Claimed self-repair must not be inferred from an) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 510.0 Tm (unrelated filesystem's design.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 06) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (DESIGN RATIONALE AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (PFS3 represents a different evolutionary route from Commodore OFS and FFS, chosen by users) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (who wanted stronger performance and recoverability on Amiga hard disks. Increased) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (sophistication changes the types of corruption and recovery cases an independent driver) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (must understand.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (Implementations must respect version-specific capacity, block-size and metadata limits,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (including PFS3 All-In-One variants. Compatibility with some Amiga operating-system) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (handlers does not prove Linux VFS, UEFI boot or modern device support. A full reference) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (needs ongoing comparison with source revisions and original release notes.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 07) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INFILTRATOROS INTEGRATION BOUNDARY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (PFS3.so is an independent adapter around on-media semantics established by the PFS3) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (sources. The published Common V2 .so must be tested against real images from an) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (independent PFS implementation. Defragmentation and recovery claims require physical) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (layout verification and interruption tests.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (The public PFS3 source tree and its version history are stronger provenance than) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (unsupported assumptions about the creator's algorithms. This reference preserves their) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (distinction from the InfiltratorOS release process.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (PFS3 - Professional File System 3) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-PFS3 / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 08) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (PRIMARY SOURCE REFERENCES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (These primary technical documents and near-contemporary references provide provenance for) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (the design history and on-disk structures. For exact field sizes or a particular format) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (revision, consult the original specifications and source code, not the conceptual cover) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (illustration.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. PFS3 All-In-One source and historical version history) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://github.com/tonioni/pfs3aio) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. AmigaOS file system comparison and other contemporary alternatives) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://wiki.amigaos.net/wiki/UserDoc%3AAmigaOS_File_Systems) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our Common V2 .so, build procedures and test evidence describe a separate) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (PFS3 / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 09) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (DISK READ PATH / ENGINEERING NOTES) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Identify both the partition's RDB DOS type and the boot-block PFS signature; these) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (serve different purposes and may not contain the same identifier bytes.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Read the reserved metadata area near the beginning of the PFS volume, rather than) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (searching for an OFS-style midpoint root block.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Reconstruct the root and reserved-space bitmap before following anode index blocks.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (Their pointer fields describe ownership of filesystem metadata.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. An anode describes a contiguous data extent and may link to another anode. A file's) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (block map is reconstructed from the anode chain, not a FAT entry per cluster.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Parse directory blocks and their variable-length name records using the exact disk) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (format revision. Directory entries refer to anode identities for file contents.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Different PFS generations and device addressing methods have different on-disk) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (constraints; interpret versions, physical sector size and reserved block size before) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 430 Tm (decoding pointers.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (7. Confirm the extent's start, length and successor are valid against volume boundaries) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 387 Tm (and that file length is coherent with the extent chain.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Separate persistent filesystem state from stale blocks left by past updates. The) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (current root and metadata graph determine which extents are live.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (PFS3 / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 10) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (VALIDATION, RECOVERY AND COMPATIBILITY) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Before a write, check reserved bitmap, anode allocation, directory block ownership and) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (user-data extents as one consistent graph.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. An anode chain with a loop, an out-of-range block address or a duplicate live extent) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (must not be trusted for writable mounting.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Protect the distinction between filesystem metadata blocks and user data. Treating an) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (anode index as file content can destroy both.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. Preserve the original boot and root state when investigating interrupted operations;) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (stale previous metadata may hold recoverable evidence.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Do not confuse PFS3 partition DOS types with file content signatures or with the) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (earlier PFS floppy layout.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. An implementation claiming TD64 or DirectSCSI support must demonstrate correct) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (addressing beyond legacy device boundaries; a successful small-image test is) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 430 Tm (insufficient.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (7. Use the exact pfs3aio source revision for low-level field sizes and byte offsets. This) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 387 Tm (appendix is interpretive and not a substitute for the source structures.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (8. Recovery should report conflicting anode and bitmap evidence rather than silently) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 344 Tm (manufacturing a new file topology.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (PFS3 / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision ac7b507fbf30) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 11) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (1. PURPOSE AND FORMAT SCOPE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (Amiga Professional File System PFS3, direct-index reader scope. This) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (repository owns the format-specific implementation of PFS3.so for) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 656 Tm (InfiltratorOS.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 626 Tm (2. ON-DISK ARCHITECTURE AND INVARIANTS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 602 Tm (Root and directory chains, allocation nodes and native block mappings must) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 587 Tm (be validated before exposing a mount. The reader distinguishes filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 572 Tm (block geometry from host transfer sizes and validates the complete root) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 557 Tm (directory chain.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 527 Tm (3. COMMON V2 IMPLEMENTATION AND CAPABILITIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 503 Tm (Hosted and embedded freestanding reader share the native core. The) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 488 Tm (descriptor declares probe, mount, stat, enumeration, read and format;) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 473 Tm (consult profile masks and tests for format availability. Independently) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458 Tm (produced PFS media exercises read access on 512-byte and 4 KiB hosts. The) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 443 Tm (canonical entry point is infiltrator_filesystem_api_v2. Consumers must) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 428 Tm (negotiate the actual profile and operation masks and use bounded,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 413 Tm (partition-relative host I/O. A source-level callback does not by itself) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 398 Tm (establish that every format variant or host profile is qualified.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (PFS3 / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision ac7b507fbf30) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 12) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (4. INTEGRITY, MUTATION, ALLOCATION AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (Superindexed volumes, large-file layouts and link traversal are outside) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (the documented reader scope. Format availability is not proof of general) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 656 Tm (namespace mutation or recovery. Production BOOT handoff is separate. For) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 641 Tm (destructive operations, require the applicable exclusive writable host,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 626 Tm (durability contract and format-specific validation. Never silently) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 611 Tm (substitute a kernel or FUSE driver or treat a rejected or unavailable) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 596 Tm (operation as success. Preserve original disk-format semantics; relocation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 581 Tm (and recovery are separate from ordinary file I/O.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 551 Tm (5. BUILD, INSTALLATION AND RELEASE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527 Tm (The target installation is /System/Filesystems/PFS3.so and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 512 Tm (/System/Resources/Documentation/Filesystem-PFS3.pdf. The project release) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 497 Tm (policy is a portable amd64 DEB and a CPU-native source-first RUN, with) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 482 Tm (GitHub's automatic source archive; do not treat this policy statement as) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 467 Tm (verification of the current installer payload. The release workflow is the) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 452 Tm (authoritative executable build and package specification. Historical) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 437 Tm (adapters and test artifacts are not additional production filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 422 Tm (authorities.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 392 Tm (6. QUALIFICATION AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 368 Tm (Recorded qualification workflow) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 353 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-PFS3/actions/runs/4552) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 338 Tm (6904930\) | Current workflows) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 323 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-PFS3/actions?query=bra) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 308 Tm (nch%3Amain\). A successful workflow establishes the tested scope only, not) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 293 Tm (complete original-format parity, physical-media crash safety, or) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 278 Tm (production BOOT/kernel integration. Use disposable images for destructive) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 263 Tm (qualification.) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (11. References and acceptance) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Pinned original source:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (https://github.com/Infiltrator-Projects/Filesystem-PFS3/tree/2a4bfebea4b31ef0ea2d6c) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (dbf6c04a7abcc7c5dc/native/filesystems/pfs3/original/pfs3aio ; cross-check blocks.h,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (allocation.c, anode and directory algorithms and root update. Test actual) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (PFS3/PFS3aio fixtures with split and nonsplit numbering, both disk IDs, reserved) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (block sizes, direct and superindex, long names, directory extensions, large files,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (links, deldir, rollover and interrupted frees. Compare file hashes and all metadata) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (ownership; native writer qualification, exact superindex and recovery semantics) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (remain outstanding. The historical provider documents follow; current) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (implementation support is separate from the format's full potential.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 12) Tj ET

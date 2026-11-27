@@ -4,6 +4,8 @@
 
 Professional File System is the Amiga filesystem developed by Michiel Pelt, later released as PFS3. The maintained PFS3aio code supports historical media and later extensions. This reference is based on the original PFS3aio source retained in this repository, including blocks.h, anode allocation, directory handling, allocation.c and disk update code. The two observed disk identifiers PFS followed by binary 1 or 2 (0x50465301/02) are not DOS or SFS identifiers. PFS3 uses allocation nodes (anodes) that describe runs of storage, reserved metadata blocks, allocation bitmaps and metadata commit mechanisms. A direct-index reader is not equivalent to support for every original PFS3 feature.
 
+The historical commercial and later open-source PFS3 development aimed at hard-disk throughput, directory responsiveness and recovery. PFS3aio source release is important preservation evidence; it is not a variation of classic Amiga FFS or Unix inode structures.
+
 ## Geometry and root field inventory
 
 The root is at disk logical block 2, with disk block bytes S and reserved metadata block bytes R separately defined. All multibyte fields are big-endian and packed according to the original 2-byte alignment. Root fields: type 0, options 4, datestamp 8, 16-bit creation day/minute/tick/protection 12/14/16/18, Pascal name 20..51, last/first reserved sector 52/56, free reserved blocks 60, reserved block bytes 64 (16-bit), root cluster sectors 66, free data blocks 68, always-free reserve 72, roving pointer 76, deleted-directory pointer 80, disk size in logical sectors 84, root extension sector 88, reserved 92, index array from 96. Validate declared size, S/R ratio and every extent. A reserved-block pointer must align relative to first_reserved; it is a sector address, not a reserved-block index.
@@ -35,6 +37,14 @@ Directory-extension records end in a 16-bit presence mask for up to eleven extra
 ## Metadata update and recovery
 
 The original implementation distinguishes immediately allocatable space, pending releases and reserved metadata headroom. Modified metadata can be relocated, retaining old blocks until a root update publishes the new state. Deferred frees and postponed operations avoid prematurely reclaiming referenced blocks. A writer must follow the original UpdateDisk, allocation and anode lifecycle, including rollback on failed publication; a datestamp does not establish a journal commit by itself. A relocation needs reserved metadata space, data copy and verification, coherent anode and bitmap updates and durable root publication. Do not release old storage before the new reachable root is durable. Exact ordering and interrupted root/metadata recovery must be tested against original images.
+
+## Implementation and qualification boundary
+
+The earlier direct-index hosted and freestanding profile was documented with independently produced PFS media on 512-byte and 4 KiB hosts. Superindex, large-file and link traversal were outside that historical reader's scope; format and namespace mutation are distinct. Historical workflow 45526904930 is evidence of its tested scope only.
+
+Common V2 is the independent provider interface: https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host I/O, exclusive unmounted ownership and durable flush for mutation; distinguish unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use the same engine only for supported operations. Hosted, freestanding, BOOT, kernel, recovery and package qualification are independent. Current capability and release status belongs to the repository README and exact-source qualification records; historical evidence is not a current status claim.
+
+Historical source or test reference: https://github.com/Infiltrator-Projects/Filesystem-PFS3/actions/runs/45526904930 .
 
 ## References and acceptance
 
