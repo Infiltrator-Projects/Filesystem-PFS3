@@ -18,10 +18,13 @@ target_include_directories(pfs3-firmware PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../native/filesystems/pfs3/core")
 target_compile_features(pfs3-firmware PRIVATE c_std_11)
 target_compile_definitions(pfs3-firmware PRIVATE IFS_PFS3_FIRMWARE_BUILD=1)
+# Firmware uses AMD64 SysV without CET, SIMD state assumptions,
+# packed relative relocations or non-4-KiB load alignment. Hosted builds
+# retain their separate native optimization profile.
 target_compile_options(pfs3-firmware PRIVATE
   -O2 -Wall -Wextra -Wpedantic -Werror
   -ffreestanding -fno-builtin -fno-stack-protector
-  -ffunction-sections -fdata-sections -mno-red-zone
+  -ffunction-sections -fdata-sections -mno-red-zone -fcf-protection=none -mgeneral-regs-only
   -fno-tree-loop-distribute-patterns -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0)
 target_link_options(pfs3-firmware PRIVATE
-  -nostdlib -Wl,-z,defs,-z,noexecstack,-z,relro,-z,now,--gc-sections,-Bsymbolic)
+  -nostdlib -Wl,-z,nopack-relative-relocs,-z,max-page-size=4096,-z,defs,-z,noexecstack,-z,relro,-z,now,--gc-sections,-Bsymbolic)
