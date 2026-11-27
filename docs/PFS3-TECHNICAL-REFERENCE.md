@@ -6,13 +6,19 @@ Professional File System is the Amiga filesystem developed by Michiel Pelt, late
 
 The historical commercial and later open-source PFS3 development aimed at hard-disk throughput, directory responsiveness and recovery. PFS3aio source release is important preservation evidence; it is not a variation of classic Amiga FFS or Unix inode structures.
 
+Amiga FileSystem.resource and RDB handler aliases include PFS1, PDS1, PFS3 and PDS3 (the final character denotes a binary DOSType byte). Handler selection is not identical to the on-media root identity. Do not accept an alias as a valid root signature.
+
 ## Geometry and root field inventory
 
 The root is at disk logical block 2, with disk block bytes S and reserved metadata block bytes R separately defined. All multibyte fields are big-endian and packed according to the original 2-byte alignment. Root fields: type 0, options 4, datestamp 8, 16-bit creation day/minute/tick/protection 12/14/16/18, Pascal name 20..51, last/first reserved sector 52/56, free reserved blocks 60, reserved block bytes 64 (16-bit), root cluster sectors 66, free data blocks 68, always-free reserve 72, roving pointer 76, deleted-directory pointer 80, disk size in logical sectors 84, root extension sector 88, reserved 92, index array from 96. Validate declared size, S/R ratio and every extent. A reserved-block pointer must align relative to first_reserved; it is a sector address, not a reserved-block index.
 
+The first two logical blocks are the AmigaDOS boot area; the first longword carries the PFS disk identity in the described hard-disk format. Traditional reserved blocks are 1024 bytes even with 512-byte logical sectors. The root cluster covers root and reserved bitmap storage.
+
 ## Mode bits and root extension
 
 Mode bits 0..12 select hard disk, split anodes, directory extension, deleted directory, size field, root extension, datestamp, superindex, super deleted directory, extended roving, long filename, large file and stored geometry respectively. These are independent feature gates, not version labels. An EX root extension has ID at 0, options 4, datestamp 8, format version 12, root/volume dates at 16/22, postponed operation and three arguments at 28/32/36/40, reserved roving at 44, bit and current anode sequence at 48/50, deldir roving/size 52/54, max name length 56 and superindex array from 64. Postponed operation types 1,2,3 denote free blocks with/without anodes and free anode chain. Do not replay unknown operations or infer current state from a datestamp alone.
+
+Later root extensions hold delete-directory owner, group, protection and creation time; up to 32 delete-directory block references; and a 17-longword DosEnvec environment snapshot for stored-geometry layouts. The extended filename limit is 30 to 107 bytes in the historical decoder. Stored geometry and large-file mode require validation of the dependent extension and root identity: an incompatible large-file state with PFS1 must be rejected.
 
 ## Reserved storage and free bitmaps
 
@@ -21,6 +27,8 @@ The reserved area has its own bitmap directly after the root record; its bits re
 ## Bitmap and anode indexes
 
 An index block has 16-bit ID, reserved word, datestamp at 4, sequence at 8, 32-bit pointers from 12. Capacity Q=(R-12)/4. In the small/direct profile the root holds five bitmap index pointers at 96 and 99 anode index pointers from 116. A bitmap block sequence b maps through root bitmap index floor(b/Q) and pointer b mod Q; validate all IDs, sequence and bounds. Larger superindex profiles have 104 bitmap index pointers and obtain anode index roots through the extension's superindex. Do not interpret the small root union as a superindex array. Superindex traversal and feature admission must be verified against the original handler before use. Unallocated pointer entries are not valid metadata addresses.
+
+The principal reserved-block IDs are DB (directory), AB (anode), IB (anode index), BM (bitmap), MI (bitmap index), DD (delete directory), EX (root extension) and SB (superindex). Validate the expected ID before applying the corresponding record layout.
 
 ## Anode record and lookup example
 
@@ -33,6 +41,8 @@ Anode links determine logical order. A run (physical 2000,length 3) followed by 
 ## Extended entries and deletion semantics
 
 Directory-extension records end in a 16-bit presence mask for up to eleven extra words. Starting immediately before the mask, walk backwards through present fields in increasing bit order; omitted words are zero. The known fields include link identity, ownership, high protection bits, rollover sizes/pointer and high 16 bits of file size (field 10). Large file length combines high16 shifted 32 with low32. Verify name/comment and extra fields do not overlap and preserve unknown extensions. Native deleted-directory records may keep recoverable file references; a deleted entry is not proof its old payload is still allocated. Rollover files and soft/hard links have separate semantics and require feature-specific verification. Do not flatten a link or rollover object into an ordinary file.
+
+Hard-link metadata uses anode-shaped link-list records identifying the object's directory, the link directory and the next list node. Soft links are file-like objects whose data contains a target path. Rollover files have fixed allocated capacity and a virtual length/pointer that wraps within that space. The hidden .deldir rotates recently deleted or overwritten references: the old layout holds 31 entries in one block, while the later super-delete-directory uses multiple blocks and extension roving state.
 
 ## Metadata update and recovery
 

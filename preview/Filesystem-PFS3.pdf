@@ -42,7 +42,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
 endobj
 9 0 obj
-<< /Length 1935 >>
+<< /Length 2386 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
@@ -61,6 +61,10 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (throughput, directory responsiveness and recovery. PFS3aio source release is) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (important preservation evidence; it is not a variation of classic Amiga FFS or Unix) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (inode structures.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 504 Td (Amiga FileSystem.resource and RDB handler aliases include PFS1, PDS1, PFS3 and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 490 Td (PDS3 \(the final character denotes a binary DOSType byte\). Handler selection is) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 476 Td (not identical to the on-media root identity. Do not accept an alias as a valid) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 462 Td (root signature.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 2) Tj ET
 endstream
 endobj
@@ -68,7 +72,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 11 0 R >>
 endobj
 11 0 obj
-<< /Length 1648 >>
+<< /Length 2122 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
@@ -84,6 +88,10 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (sectors 84, root extension sector 88, reserved 92, index array from 96. Validate) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (declared size, S/R ratio and every extent. A reserved-block pointer must align) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (relative to first_reserved; it is a sector address, not a reserved-block index.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (The first two logical blocks are the AmigaDOS boot area; the first longword) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (carries the PFS disk identity in the described hard-disk format. Traditional) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (reserved blocks are 1024 bytes even with 512-byte logical sectors. The root) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 514 Td (cluster covers root and reserved bitmap storage.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 3) Tj ET
 endstream
 endobj
@@ -91,7 +99,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 13 0 R >>
 endobj
 13 0 obj
-<< /Length 1610 >>
+<< /Length 2349 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
@@ -107,6 +115,12 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (length 56 and superindex array from 64. Postponed operation types 1,2,3 denote free) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (blocks with/without anodes and free anode chain. Do not replay unknown operations) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (or infer current state from a datestamp alone.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (Later root extensions hold delete-directory owner, group, protection and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (creation time; up to 32 delete-directory block references; and a 17-longword) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (DosEnvec environment snapshot for stored-geometry layouts. The extended filename) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 514 Td (limit is 30 to 107 bytes in the historical decoder. Stored geometry and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 500 Td (large-file mode require validation of the dependent extension and root identity:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 486 Td (an incompatible large-file state with PFS1 must be rejected.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 4) Tj ET
 endstream
 endobj
@@ -137,7 +151,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 17 0 R >>
 endobj
 17 0 obj
-<< /Length 1501 >>
+<< /Length 1966 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
@@ -152,6 +166,10 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (not interpret the small root union as a superindex array. Superindex traversal and) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (feature admission must be verified against the original handler before use.) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (Unallocated pointer entries are not valid metadata addresses.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (The principal reserved-block IDs are DB \(directory\), AB \(anode\), IB \(anode) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (index\), BM \(bitmap\), MI \(bitmap index\), DD \(delete directory\), EX \(root) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (extension\) and SB \(superindex\). Validate the expected ID before applying the) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (corresponding record layout.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 6) Tj ET
 endstream
 endobj
@@ -205,7 +223,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 23 0 R >>
 endobj
 23 0 obj
-<< /Length 1647 >>
+<< /Length 2501 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
@@ -221,6 +239,13 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (a deleted entry is not proof its old payload is still allocated. Rollover files and) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (soft/hard links have separate semantics and require feature-specific verification.) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (Do not flatten a link or rollover object into an ordinary file.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (Hard-link metadata uses anode-shaped link-list records identifying the object's) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (directory, the link directory and the next list node. Soft links are file-like) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (objects whose data contains a target path. Rollover files have fixed allocated) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 514 Td (capacity and a virtual length/pointer that wraps within that space. The hidden) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 500 Td (.deldir rotates recently deleted or overwritten references: the old layout holds) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 486 Td (31 entries in one block, while the later super-delete-directory uses multiple) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 472 Td (blocks and extension roving state.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 9) Tj ET
 endstream
 endobj
@@ -312,28 +337,28 @@ xref
 0000000551 00000 n 
 0000001843 00000 n 
 0000001989 00000 n 
-0000003975 00000 n 
-0000004123 00000 n 
-0000005823 00000 n 
-0000005971 00000 n 
-0000007633 00000 n 
-0000007781 00000 n 
-0000009454 00000 n 
-0000009602 00000 n 
-0000011155 00000 n 
-0000011303 00000 n 
-0000012932 00000 n 
-0000013080 00000 n 
-0000014760 00000 n 
-0000014908 00000 n 
-0000016607 00000 n 
-0000016755 00000 n 
-0000018437 00000 n 
-0000018585 00000 n 
-0000020918 00000 n 
-0000021066 00000 n 
+0000004426 00000 n 
+0000004574 00000 n 
+0000006748 00000 n 
+0000006896 00000 n 
+0000009297 00000 n 
+0000009445 00000 n 
+0000011118 00000 n 
+0000011266 00000 n 
+0000013284 00000 n 
+0000013432 00000 n 
+0000015061 00000 n 
+0000015209 00000 n 
+0000016889 00000 n 
+0000017037 00000 n 
+0000019590 00000 n 
+0000019738 00000 n 
+0000021420 00000 n 
+0000021568 00000 n 
+0000023901 00000 n 
+0000024049 00000 n 
 trailer
 << /Size 30 /Root 1 0 R >>
 startxref
-22777
+25760
 %%EOF
