@@ -199,13 +199,14 @@ BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 BT /F2 22 Tf 43 784 Td (PFS3 - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (11. References and acceptance) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Pinned original source:) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (https://github.com/Infiltrator-Projects/Filesystem-PFS3/tree/2a4bfebea4b31ef0ea2d6c) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (dbf6c04a7abcc7c5dc/native/filesystems/pfs3/original/pfs3aio ; cross-check blocks.h,) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (allocation.c, anode and directory algorithms and root update. Test actual) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (PFS3/PFS3aio fixtures with split and nonsplit numbering, both disk IDs, reserved) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (block sizes, direct and superindex, long names, directory extensions, large files,) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (links, deldir, rollover and interrupted frees. Compare file hashes and all metadata) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (ownership; native writer qualification, exact superindex and recovery semantics) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (remain outstanding. The historical provider documents follow; current) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (implementation support is separate from the format's full potential.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (https://github.com/Infiltrator-Projects/Filesystem-PFS3/tree/2a4bfebea4b31ef0ea) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (2d6cdbf6c04a7abcc7c5dc/native/filesystems/pfs3/original/pfs3aio ; cross-check) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (blocks.h, allocation.c, anode and directory algorithms and root update. Test) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (actual PFS3/PFS3aio fixtures with split and nonsplit numbering, both disk IDs,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (reserved block sizes, direct and superindex, long names, directory extensions,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (large files, links, deldir, rollover and interrupted frees. Compare file hashes) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (and all metadata ownership; native writer qualification, exact superindex and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (recovery semantics remain outstanding. Historical provider evidence is) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (identified in Implementation and qualification boundary; implementation support) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 566 Td (is separate from the format's full potential.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 12) Tj ET
